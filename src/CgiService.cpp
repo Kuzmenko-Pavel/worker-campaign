@@ -4,7 +4,6 @@
 #include <map>
 #include <chrono>
 
-#include "DB.h"
 #include "Log.h"
 #include "CgiService.h"
 #include "UrlParser.h"
@@ -42,8 +41,6 @@ CgiService::CgiService()
     stat = new CpuStat();
 
     FCGX_Init();
-
-    mongo::DB::ConnectLogDatabase();
 
     mode_t old_mode = umask(0);
     socketId = FCGX_OpenSocket(cfg->server_socket_path_.c_str(), cfg->server_children_ * 4);
@@ -111,7 +108,7 @@ void CgiService::Response(FCGX_Request *req,
         }
 
         FCGX_FPrintF(req->out,"Status: 200 OK\r\n");
-        FCGX_FPrintF(req->out,"Content-type: text/html\r\n");
+        FCGX_FPrintF(req->out,"Content-type: application/json\r\n");
         FCGX_FPrintF(req->out,"Set-Cookie: %s\r\n", cookie.c_str());
         FCGX_FPrintF(req->out,"Pragma: no-cache\r\n");
         FCGX_FPrintF(req->out,"Expires: Fri, 01 Jan 1990 00:00:00 GMT\r\n");
@@ -140,7 +137,7 @@ void CgiService::Response(FCGX_Request *req, unsigned status)
         if(req && req->out)
         {
             FCGX_FPrintF(req->out,"Status: %d OK\r\n",status);
-            FCGX_FPrintF(req->out,"Content-type: text/html\r\n");
+            FCGX_FPrintF(req->out,"Content-type: application/json\r\n");
             FCGX_FPrintF(req->out,"\r\n\r\n");
             FCGX_FFlush(req->out);
             FCGX_Finish_r(req);
@@ -308,108 +305,33 @@ void CgiService::ProcessRequest(FCGX_Request *req, Core *core)
 
     try
     {
-        std::vector<std::string> excluded_offers;
-        std::string exclude = post->param("exclude");
-        replaceSymbol = boost::make_u32regex("([A-Za-z\\.:\\-\\s_]+;)|([A-Za-z\\.:\\-\\s_]+)");
-        exclude = boost::u32regex_replace(exclude,replaceSymbol,"");
-        boost::trim(exclude);
-        if(exclude != "")
-        {
-            boost::split(excluded_offers, exclude, boost::is_any_of(";"));
-        }
-
-        std::vector<std::string> retargeting_exclude_offers;
-        std::string retargeting_exclude = post->param("retargeting_exclude");
-        replaceSymbol = boost::make_u32regex("([A-Za-z\\.:\\-\\s_]+;)|([A-Za-z\\.:\\-\\s_]+)");
-        retargeting_exclude = boost::u32regex_replace(retargeting_exclude,replaceSymbol,"");
-        boost::trim(retargeting_exclude);
-        if(retargeting_exclude != "")
-        {
-            boost::split(retargeting_exclude_offers, retargeting_exclude, boost::is_any_of(";"));
-        }
-
-        std::vector<std::string> retargeting_account_exclude_offers;
-        std::string retargeting_account_exclude = post->param("retargeting_account_exclude");
-        replaceSymbol = boost::make_u32regex("([A-Za-z\\.:\\-\\s_]+;)|([A-Za-z\\.:\\-\\s_]+)");
-        retargeting_account_exclude = boost::u32regex_replace(retargeting_account_exclude,replaceSymbol,"");
-        boost::trim(retargeting_account_exclude);
-        if(retargeting_account_exclude != "")
-        {
-            boost::split(retargeting_account_exclude_offers, retargeting_account_exclude, boost::is_any_of(";"));
-        }
-
-        std::vector<std::string> retargeting_offers;
-        std::string retargeting = post->param("retargeting");
-        if(retargeting != "")
-        {
-            boost::algorithm::to_lower(retargeting);
-            boost::split(retargeting_offers, retargeting, boost::is_any_of(";"));
-            if (retargeting_offers.size()> 50)
-            {
-                retargeting_offers.erase(retargeting_offers.begin()+49, retargeting_offers.end());
-            }
-        }
-        std::vector<std::string> retargeting_view_of;
-        std::map<const unsigned long, int> retargeting_view_offers;
-        std::string::size_type sz;
-        std::string retargeting_view = post->param("retargeting_view");
-        if(retargeting_view != "")
-        {
-            boost::split(retargeting_view_of, retargeting_view, boost::is_any_of(";"));
-        }
-        for (unsigned i=0; i<retargeting_view_of.size() ; i++)
-        {
-            std::vector<std::string> par;
-            boost::split(par, retargeting_view_of[i], boost::is_any_of("~"));
-            if (!par.empty() && par.size() >= 2)
-            {
-                try
-                {
-                    int oc = std::stoi (par[1],&sz);
-                    long oi = std::stol (par[0],&sz);
-                    retargeting_view_offers.insert(std::pair<const unsigned long,int>(oi,oc));
-                }
-                catch (std::exception const &ex)
-                {
-                    Log::err("exception %s: name: %s while processing retargeting_view_offers: %s", typeid(ex).name(), ex.what(), postq.c_str());
-                }
-            }
-        }
 
         Params prm = Params()
-                     .ip(ip, url->param("ip"))
+                     .ip(ip, post->param("ip"))
                      .get(query)
                      .post(postq)
                      .cookie_id(cookie_value)
-                     .informer_id(url->param("scr"))
-                     .country(url->param("country"))
-                     .region(url->param("region"))
-                     .test_mode(url->param("test") == "false")
-                     .json(url->param("show") == "json")
-                     .async(url->param("async") == "true")
-                     .storage(url->param("storage") == "true")
-                     .script_name(script_name.c_str())
-                     .location(url->param("location"))
-                     .w(url->param("w"))
-                     .h(url->param("h"))
-                     .D(url->param("d"))
-                     .M(url->param("m"))
-                     .H(url->param("hr"))
+                     .informer_id_int(post->param("informer_id_int"))
+                     .informer_id(post->param("informer_id"))
+                     .country(post->param("country"))
+                     .region(post->param("region"))
+                     .test_mode(post->param("test") == "false")
+                     .w(post->param("w"))
+                     .h(post->param("h"))
+                     .D(post->param("d"))
+                     .M(post->param("m"))
+                     .H(post->param("hr"))
                      .cost(post->param("cost"))
                      .gender(post->param("gender"))
                      .cost_accounts(post->param("cost_accounts"))
                      .gender_accounts(post->param("gender_accounts"))
-                     .device(url->param("device"))
-                     .excluded_offers(excluded_offers)
-                     .retargeting_exclude_offers(retargeting_exclude_offers)
-                     .retargeting_account_exclude_offers(retargeting_account_exclude_offers)
-                     .retargeting_view_offers(retargeting_view_offers)
-                     .search(url->param("search"))
+                     .device(post->param("device"))
+                     .search(post->param("search"))
                      .search_short(post->param("search_short"))
-                     .context(url->param("context"))
+                     .context(post->param("context"))
                      .context_short(post->param("context_short"))
                      .long_history(post->param("long_history"))
-                     .retargeting_offers(retargeting_offers);
+                     .retargeting(post->param("retargeting"));
 
         std::string result;
 
@@ -447,6 +369,7 @@ void CgiService::ProcessRequest(FCGX_Request *req, Core *core)
                 Response(req, 503);
             }
         }
+        core->ProcessClean();
         delete url;
         delete post;
     }

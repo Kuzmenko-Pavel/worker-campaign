@@ -20,7 +20,7 @@
     <sqlite>
         <!--файл базы-->
         <!--db>:memory:</db-->
-        <db>file:memdb2?mode=memory</db>
+        <db>db</db>
         <!--путь к каталогу дампа sqlite базы-->
         <schema>db_dump</schema>
         <!--путь к csv файлу содержимого таблицы GeoRerions-->

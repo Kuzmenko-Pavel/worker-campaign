@@ -36,7 +36,7 @@ std::string Core::Process(Params *prms)
 
     params = prms;
 
-    if(!getInformer(params->informer_id_))
+    if(!getInformer(params->informer_id_int_))
     {
         std::clog<<"there is no informer id: "<<prms->getInformerId()<<std::endl;
         std::clog<<" ip:"<<params->getIP();
@@ -46,11 +46,10 @@ std::string Core::Process(Params *prms)
         std::clog<<" context:"<<params->getContext();
         std::clog<<" search:"<<params->getSearch();
         std::clog<<" informer id:"<<params->informer_id_;
-        std::clog<<" location:"<<params->getLocation();
-        return Config::Instance()->template_error_;
+        return retHtml; 
     }
     //get campaign list
-    getCampaign(params);
+    getCampaign(params, placeResult, socialResult, retargetingAccountResult, retargetingResult); 
     endCoreTime = boost::posix_time::microsec_clock::local_time();
     #ifdef DEBUG
         auto elapsed = std::chrono::high_resolution_clock::now() - start;
@@ -58,8 +57,64 @@ std::string Core::Process(Params *prms)
         printf("Time %s taken: %lld \n", __func__,  microseconds);
         printf("%s\n","/////////////////////////////////////////////////////////////////////////");
     #endif // DEBUG
-
+    resultHtml();
     return retHtml;
+}
+//-------------------------------------------------------------------------------------------------------------------
+void Core::resultHtml()
+{
+    std::stringstream str_json;
+    str_json << "{\n";
+    str_json << "\"place\":";
+    str_json << "{\n";
+    for (Campaign::it o = placeResult.begin(); o != placeResult.end(); ++o)
+    {
+        if (o != placeResult.begin())
+        {
+            str_json << ",\n";
+        }
+        str_json << "\"" << (*o)->id << "\":";
+        str_json << (*o)->toJson();
+    }
+    str_json << "},\n";
+    str_json << "\"social\":";
+    str_json << "{\n";
+    for (Campaign::it o = socialResult.begin(); o != socialResult.end(); ++o)
+    {
+        if (o != socialResult.begin())
+        {
+            str_json << ",\n";
+        }
+        str_json << "\"" << (*o)->id << "\":";
+        str_json << (*o)->toJson();
+    }
+    str_json << "},\n";
+    str_json << "\"retargetingAccount\":";
+    str_json << "{\n";
+    for (Campaign::it o = retargetingAccountResult.begin(); o != retargetingAccountResult.end(); ++o)
+    {
+        if (o != retargetingAccountResult.begin())
+        {
+            str_json << ",\n";
+        }
+        str_json << "\"" << (*o)->id << "\":";
+        str_json << (*o)->toJson();
+    }
+    str_json << "},\n";
+    str_json << "\"retargeting\":";
+    str_json << "{\n";
+    for (Campaign::it o = retargetingResult.begin(); o != retargetingResult.end(); ++o)
+    {
+        if (o != retargetingResult.begin())
+        {
+            str_json << ",\n";
+        }
+        str_json << "\"" << (*o)->id << "\":";
+        str_json << (*o)->toJson();
+    }
+    str_json << "}\n";
+    str_json << "}\n";
+    retHtml = str_json.str();
 }
 //-------------------------------------------------------------------------------------------------------------------
 void Core::log()
@@ -87,8 +142,32 @@ void Core::log()
 
     if(cfg->logInformerId)
         std::clog<<" informer id:"<<informer->id;
-
-    if(cfg->logLocation)
-        std::clog<<" location:"<<params->getLocation();
 }
 //-------------------------------------------------------------------------------------------------------------------
+void Core::ProcessClean()
+{
+    request_processed_++;
+    log();
+
+    for (Campaign::it o = placeResult.begin(); o != placeResult.end(); ++o)
+    {
+        delete *o;
+    }
+    placeResult.clear();
+    for (Campaign::it o = socialResult.begin(); o != socialResult.end(); ++o)
+    {
+        delete *o;
+    }
+    socialResult.clear();
+    for (Campaign::it o = retargetingAccountResult.begin(); o != retargetingAccountResult.end(); ++o)
+    {
+        delete *o;
+    }
+    retargetingAccountResult.clear();
+    for (Campaign::it o = retargetingResult.begin(); o != retargetingResult.end(); ++o)
+    {
+        delete *o;
+    }
+    retargetingResult.clear();
+    clear();
+}

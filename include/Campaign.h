@@ -2,6 +2,7 @@
 #define CAMPAIGN_H
 
 #include <string>
+#include <vector>
 
 #include "KompexSQLiteDatabase.h"
 
@@ -22,9 +23,19 @@ public:
     std::string project;
     bool social;
     showCoverage type;
+    int impressionsPerDayLimit;
+    bool brending;
+    std::string recomendet_type;
+    int recomendet_count;
+    std::string account;
+    int offer_by_campaign_unique;
+    int UnicImpressionLot;
+    int html_notification;
 
     Campaign();
     Campaign(long long id);
+    Campaign(long long id, const std::string &guid, const std::string &title, const std::string &project, bool social, int impressionsPerDayLimit,
+            bool brending, const std::string &recomendet_type, int recomendet_count, const std::string &account, int offer_by_campaign_unique, int UnicImpressionLot, int html_notification);
     virtual ~Campaign();
 
     static std::string getName(long long campaign_id);
@@ -32,6 +43,9 @@ public:
     static showCoverage typeConv(const std::string &t);
     void setType(const int &t);
     std::string getType();
+    typedef std::vector <Campaign*> Vector;
+    typedef std::vector <Campaign*>::iterator it;
+    std::string toJson() const;
 };
 
 #endif // CAMPAIGN_H

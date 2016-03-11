@@ -1,3 +1,4 @@
+#include <iostream>
 #include "json.h"
 
 std::string Json::Utils::Escape(const std::string &str)
@@ -42,5 +43,11 @@ std::string Json::Utils::Escape(const std::string &str)
             break;
         }
     }
+    return result;
+}
+std::string Json::Utils::Escape(const bool &str)
+{
+    std::string result;
+    result = str ? "true" : "false";
     return result;
 }

@@ -4,6 +4,7 @@
 #include <string>
 #include <set>
 
+#include "Campaign.h"
 #include "Informer.h"
 #include "Params.h"
 #include "DataBase.h"
@@ -15,9 +16,9 @@ class Core_DataBase
         Core_DataBase();
         virtual ~Core_DataBase();
 
-        bool getInformer(const std::string informer_id);
-        void getCampaign(Params *params);
-
+        bool getInformer(const long long informer_id_int_);
+        void getCampaign(Params *params, Campaign::Vector &placeResult, Campaign::Vector &socialResult, Campaign::Vector &retargetingAccountResult, Campaign::Vector &retargetingResult);
+        void clear();
     protected:
     private:
         Params *params;

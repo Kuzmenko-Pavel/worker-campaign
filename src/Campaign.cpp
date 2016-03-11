@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "KompexSQLiteStatement.h"
 #include "KompexSQLiteException.h"
+#include "json.h"
 
 Campaign::Campaign()
 {
@@ -47,11 +48,51 @@ Campaign::Campaign(long long _id) :
     delete pStmt;
 }
 
+Campaign::Campaign(long long id, const std::string &guid, const std::string &title, const std::string &project, bool social, int impressionsPerDayLimit,
+        bool brending, const std::string &recomendet_type, int recomendet_count, const std::string &account, int offer_by_campaign_unique, int UnicImpressionLot, int html_notification):
+    id(id),
+    guid(guid),
+    title(title),
+    project(project),
+    social(social),
+    impressionsPerDayLimit(impressionsPerDayLimit),
+    brending(brending),
+    recomendet_type(recomendet_type),
+    recomendet_count(recomendet_count),
+    account(account),
+    offer_by_campaign_unique(offer_by_campaign_unique),
+    UnicImpressionLot(UnicImpressionLot),
+    html_notification(html_notification)
+{
+
+}
 Campaign::~Campaign()
 {
 
 }
 
+std::string Campaign::toJson() const
+{
+    std::stringstream str_json;
+
+    str_json << "{\n" <<
+        "\"id\": " << id << ",\n" <<
+        "\"guid\": \"" << Json::Utils::Escape(guid) << "\",\n" <<
+        "\"title\": \"" << Json::Utils::Escape(title) << "\",\n" <<
+        "\"project\": \"" << Json::Utils::Escape(project) << "\",\n" <<
+        "\"social\": \"" << Json::Utils::Escape(social) << "\",\n" <<
+        "\"impressionsPerDayLimit\": " << impressionsPerDayLimit << ",\n" <<
+        "\"brending\": \"" << Json::Utils::Escape(brending) << "\",\n" <<
+        "\"recomendet_type\": \"" << Json::Utils::Escape(recomendet_type) << "\",\n" <<
+        "\"recomendet_count\": " << recomendet_count << ",\n" <<
+        "\"account\": \"" << Json::Utils::Escape(account) << "\",\n" <<
+        "\"offer_by_campaign_unique\": " << offer_by_campaign_unique << ",\n" <<
+        "\"UnicImpressionLot\": " << UnicImpressionLot << ",\n" <<
+        "\"html_notification\": " << html_notification << "\n" <<
+         "}\n";
+
+    return str_json.str();
+}
 //-------------------------------------------------------------------------------------------------------
 void Campaign::info(std::vector<Campaign*> &res, std::string t)
 {

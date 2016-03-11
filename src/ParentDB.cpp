@@ -192,81 +192,21 @@ bool ParentDB::InformerUpdate(mongo::Query query)
         }
 
 
-        int capacity = 0;
-        std::string headerHtml;
-        std::string footerHtml;
-        std::string nonrelevant;
-        std::string user_code;
-        mongo::BSONElement capacity_element =
-            x.getFieldDotted("admaker.Main.itemsNumber");
-        mongo::BSONElement header_html =
-            x.getFieldDotted("admaker.MainHeader.html");
-        mongo::BSONElement footer_html =
-            x.getFieldDotted("admaker.MainFooter.html");
-        mongo::BSONElement nonrelevant_element =
-            x.getFieldDotted("nonRelevant.action");
-        mongo::BSONElement user_code_element =
-            x.getFieldDotted("nonRelevant.userCode");
-        switch (capacity_element.type())
-        {
-        case mongo::NumberInt:
-            capacity = capacity_element.numberInt();
-            break;
-        case mongo::String:
-            capacity =
-                boost::lexical_cast<int>(capacity_element.str());
-            break;
-        default:
-            capacity = 0;
-        }
-        headerHtml = header_html.str();
-        footerHtml = footer_html.str();
-        nonrelevant = nonrelevant_element.str();
-        user_code = user_code_element.str();
-
         domainId = 0;
         accountId = 0;
         std::string domain = x.getStringField("domain");
         domainId = insertAndGetDomainId(domain);
         accountId = insertAndGetAccountId(x.getStringField("user"));
-        std::string css;
-        css = x.getStringField("css");
-        cfg->minifyhtml(css);
        
         if (find)
         {
             bzero(buf,sizeof(buf));
             sqlite3_snprintf(sizeof(buf),buf,
-                             "UPDATE Informer SET title='%q',bannersCss='%q',teasersCss='%q',headerHtml='%q',footerHtml='%q',domainId=%lld,accountId=%lld,\
-                              nonrelevant='%q',valid=1,height=%d,width=%d,height_banner=%d,width_banner=%d,capacity=%d,\
-                              range_short_term=%f, range_long_term=%f, range_context=%f, range_search=%f, retargeting_capacity=%u, user_code='%q', html_notification=%d, plase_branch=%d, retargeting_branch=%d\
+                             "UPDATE Informer SET domainId=%lld,accountId=%lld,\
+                              valid=1\
                               WHERE id=%lld;",
-                             x.getStringField("title"),
-                             x.getStringField("css_banner"),
-                             css.c_str(),
-                             headerHtml.c_str(),
-                             footerHtml.c_str(),
                              domainId,
                              accountId,
-
-                             nonrelevant.c_str(),
-                             x.getIntField("height"),
-                             x.getIntField("width"),
-                             x.getIntField("height_banner"),
-                             x.getIntField("width_banner"),
-                             capacity,
-
-                             x.hasField("range_short_term") ? x.getField("range_short_term").numberDouble() : cfg->range_short_term_,
-                             x.hasField("range_long_term") ? x.getField("range_long_term").numberDouble() : cfg->range_long_term_,
-                             x.hasField("range_context") ? x.getField("range_context").numberDouble() : cfg->range_context_,
-                             x.hasField("range_search") ? x.getField("range_search").numberDouble() : cfg->range_search_,
-                             x.hasField("retargeting_capacity") ?
-                                (unsigned)(capacity * x.getField("retargeting_capacity").numberDouble()) :
-                                (unsigned)(cfg->retargeting_percentage_ * capacity / 100),
-                             user_code.c_str(),
-                             x.getBoolField("html_notification") ? 1 : 0,
-                             x.getBoolField("plase_branch") ? 1 : 0,
-                             x.getBoolField("retargeting_branch") ? 1 : 0,
                              long_id
                             );
         }
@@ -274,40 +214,14 @@ bool ParentDB::InformerUpdate(mongo::Query query)
         {
             bzero(buf,sizeof(buf));
             sqlite3_snprintf(sizeof(buf),buf,
-                             "INSERT OR IGNORE INTO Informer(id,guid,title,bannersCss,teasersCss,headerHtml,footerHtml,domainId,accountId,\
-                              nonrelevant,valid,height,width,height_banner,width_banner,capacity,\
-                              range_short_term, range_long_term, range_context, range_search, retargeting_capacity, user_code, html_notification, plase_branch, retargeting_branch) VALUES(\
-                              %lld,'%q','%q','%q','%q','%q','%q',%lld,%lld,\
-                              '%q',1,%d,%d,%d,%d,%d,\
-                              %f,%f,%f,%f,%u,'%q',%d,%d,%d);",
+                             "INSERT OR IGNORE INTO Informer(id,guid,domainId,accountId,\
+                              valid) VALUES(\
+                              %lld,'%q',%lld,%lld,\
+                              1);",
                              long_id,
                              id.c_str(),
-                             x.getStringField("title"),
-                             x.getStringField("css_banner"),
-                             css.c_str(),
-                             headerHtml.c_str(),
-                             footerHtml.c_str(),
                              domainId,
-                             accountId,
-
-                             nonrelevant.c_str(),
-                             x.getIntField("height"),
-                             x.getIntField("width"),
-                             x.getIntField("height_banner"),
-                             x.getIntField("width_banner"),
-                             capacity,
-
-                             x.hasField("range_short_term") ? x.getField("range_short_term").numberDouble() : cfg->range_short_term_,
-                             x.hasField("range_long_term") ? x.getField("range_long_term").numberDouble() : cfg->range_long_term_,
-                             x.hasField("range_context") ? x.getField("range_context").numberDouble() : cfg->range_context_,
-                             x.hasField("range_search") ? x.getField("range_search").numberDouble() : cfg->range_search_,
-                             x.hasField("retargeting_capacity") ?
-                                (unsigned)(capacity * x.getField("retargeting_capacity").numberDouble()) :
-                                (unsigned)(cfg->retargeting_percentage_ * capacity / 100),
-                             user_code.c_str(),
-                             x.getBoolField("html_notification") ? 1 : 0,
-                             x.getBoolField("plase_branch") ? 1 : 0,
-                             x.getBoolField("retargeting_branch") ? 1 : 0
+                             accountId
                             );
 
         }

@@ -48,7 +48,6 @@ bool DataBase::openDb()
 {
     int flags;
 
-    Config::Instance()->offerSqlStr = getSqlFile("requests/getOffers.sql");
     Config::Instance()->informerSqlStr = getSqlFile("requests/getInformer.sql");
     Config::Instance()->campaingSqlStr = getSqlFile("requests/getCampaings.sql");
 

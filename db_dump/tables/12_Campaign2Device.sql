@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS Campaign2Device
+(
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+id_cam INT8 NOT NULL,
+id_dev INT8 NOT NULL,
+FOREIGN KEY(id_cam) REFERENCES Campaign(id) ON DELETE CASCADE,
+FOREIGN KEY(id_dev) REFERENCES Device(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_Campaign2Device_id_dev_id_cam ON Campaign2Device (id_cam ASC, id_dev ASC);

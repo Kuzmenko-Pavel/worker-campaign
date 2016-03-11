@@ -14,7 +14,6 @@ SRC_ALL=src/base64.cpp \
 		src/CgiService.cpp \
 		src/EBranch.cpp \
 		src/json.cpp \
-		src/ParamParse.cpp \
 		src/UrlParser.cpp \
 		src/Config.cpp \
 		src/KompexSQLiteDatabase.cpp \
@@ -59,7 +58,6 @@ debian_BUILD = $(bin_PROGRAMS)-$(VERSION)
 dist_doc_DATA=README
 
 sysconf_DATA= \
-db_dump/requests/02.sql \
 db_dump/requests/getCampaings.sql \
 db_dump/requests/getInformer.sql \
 db_dump/GEO \
@@ -81,7 +79,6 @@ db_dump/tables/21_GeoLiteCity.sql
 
 install_f =\
 echo -n "install to $1"; \
-$(MKDIR_P) $(1)/etc/$(bin_PROGRAMS)/template; \
 $(MKDIR_P) $(1)/etc/$(bin_PROGRAMS)/db_dump; \
 $(MKDIR_P) $(1)/etc/$(bin_PROGRAMS)/db_dump/post; \
 $(MKDIR_P) $(1)/etc/$(bin_PROGRAMS)/db_dump/tables; \

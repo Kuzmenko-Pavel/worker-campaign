@@ -101,7 +101,7 @@ void Core::resultHtml()
         str_json << (*o)->toJson();
     }
     str_json << "},\n";
-    str_json << "\"retargeting\":";
+    str_json << "\"retargetingOffer\":";
     str_json << "{\n";
     for (Campaign::it o = retargetingResult.begin(); o != retargetingResult.end(); ++o)
     {

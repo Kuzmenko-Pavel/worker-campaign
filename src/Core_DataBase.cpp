@@ -35,18 +35,18 @@ void Core_DataBase::getCampaign(Params *_params, Campaign::Vector &placeResult, 
     std::string D = "cast(strftime('%w','now','localtime') AS INT)";
     std::string H = "cast(strftime('%H','now','localtime') AS INT)";
     std::string M = "cast(strftime('%M','now','localtime') AS INT)";
-    if (!params->D_.empty())
+    if (!params->getD().empty())
     {
-        D = params->D_;
+        D = params->getD();
     }
-    if (!params->M_.empty())
+    if (!params->getM().empty())
     {
-        M = params->M_;
+        M = params->getM();
     }
 
-    if (!params->H_.empty())
+    if (!params->getH().empty())
     {
-        H = params->H_;
+        H = params->getH();
     }
 
     where = "ca.social = 0 and ca.retargeting=0";

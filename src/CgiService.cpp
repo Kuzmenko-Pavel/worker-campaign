@@ -93,6 +93,7 @@ CgiService::~CgiService()
 
 void CgiService::Response(FCGX_Request *req,
                           const std::string &content,
+                          const std::string &contentType,
                           const std::string &cookie)
 {
     try
@@ -108,7 +109,7 @@ void CgiService::Response(FCGX_Request *req,
         }
 
         FCGX_FPrintF(req->out,"Status: 200 OK\r\n");
-        FCGX_FPrintF(req->out,"Content-type: application/json\r\n");
+        FCGX_FPrintF(req->out,"Content-type: %s\r\n", contentType.c_str());
         FCGX_FPrintF(req->out,"Set-Cookie: %s\r\n", cookie.c_str());
         FCGX_FPrintF(req->out,"Pragma: no-cache\r\n");
         FCGX_FPrintF(req->out,"Expires: Fri, 01 Jan 1990 00:00:00 GMT\r\n");
@@ -208,26 +209,26 @@ void CgiService::ProcessRequest(FCGX_Request *req, Core *core)
         return;
     }
     char *tmp_str = nullptr;
-    std::string query, ip, script_name, cookie_value;
+    std::string query, ip, script_name, cookie_value, postq, xhr;
+    bool ajax = false;
     boost::u32regex replaceSymbol;
 
 
     if (!(tmp_str = FCGX_GetParam("QUERY_STRING", req->envp)))
     {
         Log::warn("query string is not set");
-        return;
     }
     else
     {
         query = std::string(tmp_str);
     }
 
-    char * content_length_str = FCGX_GetParam("CONTENT_LENGTH", req->envp);
+    
+    tmp_str = nullptr;
     unsigned long content_length = STDIN_MAX;
-    std::string postq;
-    if (content_length_str) {
-        content_length = strtol(content_length_str, &content_length_str, 10);
-        if (*content_length_str) {
+    if ((tmp_str = FCGX_GetParam("CONTENT_LENGTH", req->envp))) {
+        content_length = strtol(tmp_str, &tmp_str, 10);
+        if (*tmp_str) {
             Log::warn("Can't Parse 'CONTENT_LENGTH'");
         }
         if (content_length > STDIN_MAX) {
@@ -236,16 +237,27 @@ void CgiService::ProcessRequest(FCGX_Request *req, Core *core)
         if (content_length > 0)
         {
             char * content = new char[content_length];
-            memset(content, 0, content_length);
+            memset(content, ' ', content_length);
             FCGX_GetStr(content, content_length, req->in);
+            postq.clear();
+            postq.resize (content_length,' ');
             postq = std::string(content);
+            postq.resize (content_length);
             delete [] content;
+            content_length = 0;
         }
     }
+
     tmp_str = nullptr;
     if( !(tmp_str = FCGX_GetParam("REMOTE_ADDR", req->envp)) )
     {
         Log::warn("remote address is not set");
+        Response(req, 200);
+        query.clear();
+        ip.clear();
+        script_name.clear();
+        cookie_value.clear();
+        postq.clear();
         return;
     }
     else
@@ -257,11 +269,32 @@ void CgiService::ProcessRequest(FCGX_Request *req, Core *core)
     if (!(tmp_str = FCGX_GetParam("SCRIPT_NAME", req->envp)))
     {
         Log::warn("script name is not set");
+        Response(req, 200);
+        query.clear();
+        ip.clear();
+        script_name.clear();
+        cookie_value.clear();
+        postq.clear();
         return;
     }
     else
     {
         script_name = std::string(tmp_str);
+    }
+    
+    tmp_str = nullptr;
+    if ((tmp_str = FCGX_GetParam("HTTP_X_REQUESTED_WITH", req->envp)))
+    {
+        xhr = std::string(tmp_str);
+        std::transform(xhr.begin(), xhr.end(), xhr.begin(), ::tolower);
+        if(xhr == "xmlhttprequest")
+        {
+            ajax = true;
+        }
+    }
+    else
+    {
+        Log::err(tmp_str);
     }
 
     tmp_str = nullptr;
@@ -299,85 +332,84 @@ void CgiService::ProcessRequest(FCGX_Request *req, Core *core)
             server_name = std::string(tmp_str);
         }
 
-        Response(req, bcore->Status(server_name), "");
+        Response(req, bcore->Status(server_name), "text/html","");
+        delete url;
+        delete post;
+        query.clear();
+        ip.clear();
+        script_name.clear();
+        cookie_value.clear();
+        postq.clear();
         return;
     }
 
-    try
+    if (ajax)
     {
-
-        Params prm = Params()
-                     .ip(ip, post->param("ip"))
-                     .get(query)
-                     .post(postq)
-                     .cookie_id(cookie_value)
-                     .informer_id_int(post->param("informer_id_int"))
-                     .informer_id(post->param("informer_id"))
-                     .country(post->param("country"))
-                     .region(post->param("region"))
-                     .test_mode(post->param("test") == "false")
-                     .w(post->param("w"))
-                     .h(post->param("h"))
-                     .D(post->param("d"))
-                     .M(post->param("m"))
-                     .H(post->param("hr"))
-                     .cost(post->param("cost"))
-                     .gender(post->param("gender"))
-                     .cost_accounts(post->param("cost_accounts"))
-                     .gender_accounts(post->param("gender_accounts"))
-                     .device(post->param("device"))
-                     .search(post->param("search"))
-                     .search_short(post->param("search_short"))
-                     .context(post->param("context"))
-                     .context_short(post->param("context_short"))
-                     .long_history(post->param("long_history"))
-                     .retargeting(post->param("retargeting"));
-
-        std::string result;
-
-        result = core->Process(&prm);
-
-
-        ClearSilver::Cookie c = ClearSilver::Cookie(cfg->cookie_name_,
-                      prm.getCookieId(),
-                      ClearSilver::Cookie::Credentials(
-                                ClearSilver::Cookie::Authority(cfg->cookie_domain_),
-                                ClearSilver::Cookie::Path(cfg->cookie_path_),
-                            ClearSilver::Cookie::Expires(boost::posix_time::second_clock::local_time() + boost::gregorian::years(1))));
-        if (result.empty())
+        try
         {
-            Log::err("empty request %s: ", query.c_str());
-            Response(req, 500);
+
+            Params prm = Params()
+                         .get(query)
+                         .post(postq)
+                         .cookie_id(cookie_value)
+                         .json(postq)
+                         .parse();
+
+            std::string result;
+
+            result = core->Process(&prm);
+
+
+            ClearSilver::Cookie c = ClearSilver::Cookie(cfg->cookie_name_,
+                          prm.getCookieId(),
+                          ClearSilver::Cookie::Credentials(
+                                    ClearSilver::Cookie::Authority(cfg->cookie_domain_),
+                                    ClearSilver::Cookie::Path(cfg->cookie_path_),
+                                ClearSilver::Cookie::Expires(boost::posix_time::second_clock::local_time() + boost::gregorian::years(1))));
+            if (result.empty())
+            {
+                Log::err("empty request %s: ", query.c_str());
+                Response(req, 500);
+            }
+            else
+            {
+                try
+                {
+                    Response(req, result, "application/json", c.to_string());
+                    #ifdef DEBUG
+                        auto elapsed = std::chrono::high_resolution_clock::now() - start;
+                        long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+                        printf("Time %s taken: %lld \n", __func__,  microseconds);
+                        printf("%s\n","------------------------------------------------------------------");
+                    #endif // DEBUG
+                }
+                catch (std::exception const &ex)
+                {
+                    Log::err(c.to_string().c_str());
+                    Log::err(result.c_str());
+                    Log::err("exception %s: name: %s while processing send response: %s", typeid(ex).name(), ex.what(), query.c_str());
+                    Response(req, 503);
+                }
+            }
+            core->ProcessClean();
         }
-        else
+        catch (std::exception const &ex)
         {
-            try
-            {
-                Response(req, result, c.to_string());
-                #ifdef DEBUG
-                    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-                    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-                    printf("Time %s taken: %lld \n", __func__,  microseconds);
-                    printf("%s\n","------------------------------------------------------------------");
-                #endif // DEBUG
-            }
-            catch (std::exception const &ex)
-            {
-                Log::err(c.to_string().c_str());
-                Log::err(result.c_str());
-                Log::err("exception %s: name: %s while processing send response: %s", typeid(ex).name(), ex.what(), query.c_str());
-                Response(req, 503);
-            }
+            Log::err("exception %s: name: %s while processing: %s", typeid(ex).name(), ex.what(), query.c_str());
+            Response(req, 503);
         }
-        core->ProcessClean();
-        delete url;
-        delete post;
     }
-    catch (std::exception const &ex)
+    else
     {
-        Log::err("exception %s: name: %s while processing: %s", typeid(ex).name(), ex.what(), query.c_str());
-        Response(req, 503);
+        Response(req, 200);
     }
+    delete url;
+    delete post;
+    query.clear();
+    ip.clear();
+    script_name.clear();
+    cookie_value.clear();
+    postq.clear();
 }
 
 void CgiService::SignalHandler(int signum)

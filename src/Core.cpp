@@ -4,6 +4,7 @@
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <map>
+#include <sstream>
 
 #include <ctime>
 #include <cstdlib>
@@ -15,6 +16,7 @@
 #include "Core.h"
 #include "DB.h"
 #include "base64.h"
+#include "json.h"
 
 Core::Core()
 {
@@ -36,7 +38,7 @@ std::string Core::Process(Params *prms)
 
     params = prms;
 
-    if(!getInformer(params->informer_id_int_))
+    if(!getInformer(params->getInformerIdInt()))
     {
         std::clog<<"there is no informer id: "<<prms->getInformerId()<<std::endl;
         std::clog<<" ip:"<<params->getIP();
@@ -45,7 +47,6 @@ std::string Core::Process(Params *prms)
         std::clog<<" cookie:"<<params->getCookieId();
         std::clog<<" context:"<<params->getContext();
         std::clog<<" search:"<<params->getSearch();
-        std::clog<<" informer id:"<<params->informer_id_;
         return retHtml; 
     }
     //get campaign list
@@ -63,58 +64,33 @@ std::string Core::Process(Params *prms)
 //-------------------------------------------------------------------------------------------------------------------
 void Core::resultHtml()
 {
-    std::stringstream str_json;
-    str_json << "{\n";
-    str_json << "\"place\":";
-    str_json << "{\n";
+    std::map<std::string, nlohmann::json> c_map;
+    nlohmann::json j;
+    c_map.clear();
     for (Campaign::it o = placeResult.begin(); o != placeResult.end(); ++o)
     {
-        if (o != placeResult.begin())
-        {
-            str_json << ",\n";
-        }
-        str_json << "\"" << (*o)->id << "\":";
-        str_json << (*o)->toJson();
+       c_map.insert(std::pair<std::string, nlohmann::json>(std::to_string((*o)->id),(*o)->toJson()));
     }
-    str_json << "},\n";
-    str_json << "\"social\":";
-    str_json << "{\n";
+    j["place"] = nlohmann::json(c_map);
+    c_map.clear();
     for (Campaign::it o = socialResult.begin(); o != socialResult.end(); ++o)
     {
-        if (o != socialResult.begin())
-        {
-            str_json << ",\n";
-        }
-        str_json << "\"" << (*o)->id << "\":";
-        str_json << (*o)->toJson();
+       c_map.insert(std::pair<std::string, nlohmann::json>(std::to_string((*o)->id),(*o)->toJson()));
     }
-    str_json << "},\n";
-    str_json << "\"retargetingAccount\":";
-    str_json << "{\n";
+    j["social"] = nlohmann::json(c_map);
+    c_map.clear();
     for (Campaign::it o = retargetingAccountResult.begin(); o != retargetingAccountResult.end(); ++o)
     {
-        if (o != retargetingAccountResult.begin())
-        {
-            str_json << ",\n";
-        }
-        str_json << "\"" << (*o)->id << "\":";
-        str_json << (*o)->toJson();
+       c_map.insert(std::pair<std::string, nlohmann::json>(std::to_string((*o)->id),(*o)->toJson()));
     }
-    str_json << "},\n";
-    str_json << "\"retargetingOffer\":";
-    str_json << "{\n";
+    j["retargetingAccount"] = nlohmann::json(c_map);
+    c_map.clear();
     for (Campaign::it o = retargetingResult.begin(); o != retargetingResult.end(); ++o)
     {
-        if (o != retargetingResult.begin())
-        {
-            str_json << ",\n";
-        }
-        str_json << "\"" << (*o)->id << "\":";
-        str_json << (*o)->toJson();
+       c_map.insert(std::pair<std::string, nlohmann::json>(std::to_string((*o)->id),(*o)->toJson()));
     }
-    str_json << "}\n";
-    str_json << "}\n";
-    retHtml = str_json.str();
+    j["retargetingOffer"] = nlohmann::json(c_map);
+    retHtml = j.dump();
 }
 //-------------------------------------------------------------------------------------------------------------------
 void Core::log()

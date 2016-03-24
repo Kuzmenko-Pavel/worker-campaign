@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "KompexSQLiteDatabase.h"
+#include "json.h"
 
 //typedef long long			sphinx_int64_t;
 //typedef unsigned long long	sphinx_uint64_t;
@@ -45,7 +46,7 @@ public:
     std::string getType();
     typedef std::vector <Campaign*> Vector;
     typedef std::vector <Campaign*>::iterator it;
-    std::string toJson() const;
+    nlohmann::json toJson() const;
 };
 
 #endif // CAMPAIGN_H

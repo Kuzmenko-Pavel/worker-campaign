@@ -71,27 +71,23 @@ Campaign::~Campaign()
 
 }
 
-std::string Campaign::toJson() const
+nlohmann::json Campaign::toJson() const
 {
-    std::stringstream str_json;
-
-    str_json << "{\n" <<
-        "\"id\": " << id << ",\n" <<
-        "\"guid\": \"" << Json::Utils::Escape(guid) << "\",\n" <<
-        "\"title\": \"" << Json::Utils::Escape(title) << "\",\n" <<
-        "\"project\": \"" << Json::Utils::Escape(project) << "\",\n" <<
-        "\"social\": \"" << Json::Utils::Escape(social) << "\",\n" <<
-        "\"impressionsPerDayLimit\": " << impressionsPerDayLimit << ",\n" <<
-        "\"brending\": \"" << Json::Utils::Escape(brending) << "\",\n" <<
-        "\"recomendet_type\": \"" << Json::Utils::Escape(recomendet_type) << "\",\n" <<
-        "\"recomendet_count\": " << recomendet_count << ",\n" <<
-        "\"account\": \"" << Json::Utils::Escape(account) << "\",\n" <<
-        "\"offer_by_campaign_unique\": " << offer_by_campaign_unique << ",\n" <<
-        "\"UnicImpressionLot\": " << UnicImpressionLot << ",\n" <<
-        "\"html_notification\": " << html_notification << "\n" <<
-         "}\n";
-
-    return str_json.str();
+    nlohmann::json j;
+    j["campaign_id"] = id;
+    j["campaign_guid"] = guid;
+    j["campaign_title"] = title;
+    j["campaign_project"] = project;
+    j["campaign_social"] = social;
+    j["campaign_impressionsPerDayLimit"] = impressionsPerDayLimit;
+    j["campaign_brending"] = brending;
+    j["campaign_recomendet_type"] = recomendet_type;
+    j["campaign_recomendet_count"] = recomendet_count;
+    j["campaign_account"] = account;
+    j["campaign_offer_by_campaign_unique"] = offer_by_campaign_unique;
+    j["campaign_UnicImpressionLot"] = UnicImpressionLot;
+    j["campaign_html_notification"] = html_notification;
+    return j;
 }
 //-------------------------------------------------------------------------------------------------------
 void Campaign::info(std::vector<Campaign*> &res, std::string t)

@@ -1,4 +1,5 @@
 #include "Core_DataBase.h"
+#include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <vector>
@@ -27,6 +28,7 @@ void Core_DataBase::getCampaign(Params *_params, Campaign::Vector &placeResult, 
 {
     #ifdef DEBUG
         auto start = std::chrono::high_resolution_clock::now();
+        auto start1 = std::chrono::high_resolution_clock::now();
         printf("%s\n","------------------------------------------------------------------");
     #endif // DEBUG
     Kompex::SQLiteStatement *pStmt;
@@ -49,284 +51,322 @@ void Core_DataBase::getCampaign(Params *_params, Campaign::Vector &placeResult, 
         H = params->getH();
     }
 
-    where = "ca.social = 0 and ca.retargeting=0";
-    bzero(cmd,sizeof(cmd));
-    sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
-                         params->getCountry().c_str(),
-                         params->getRegion().c_str(),
-                         params->getDevice().c_str(),
-                         informer->domainId,
-                         informer->domainId,
-                         informer->accountId,
-                         informer->id,
-                         informer->domainId,
-                         informer->domainId,
-                         informer->accountId,
-                         informer->accountId,
-                         informer->id,
-                         informer->id,
-                         D.c_str(),
-                         H.c_str(),
-                         M.c_str(),
-                         H.c_str(),
-                         D.c_str(),
-                         H.c_str(),
-                         M.c_str(),
-                         H.c_str(),
-                         where.c_str()
-                         );
-
-
-    try
+    if (params->isPlace())
     {
-        pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
-        pStmt->Sql(cmd);
+        where = (boost::format(" ca.social = %d and ca.retargeting=%d and %s and %s ") % 0 % 0 % params->getGender() % params->getCost()  ).str();
+        bzero(cmd,sizeof(cmd));
+        sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
+                             "idx_Campaign_nosocial_gender_cost",
+                             params->getCountry().c_str(),
+                             params->getRegion().c_str(),
+                             params->getDevice().c_str(),
+                             informer->domainId,
+                             informer->domainId,
+                             informer->accountId,
+                             informer->id,
+                             informer->domainId,
+                             informer->domainId,
+                             informer->accountId,
+                             informer->accountId,
+                             informer->id,
+                             informer->id,
+                             D.c_str(),
+                             H.c_str(),
+                             M.c_str(),
+                             H.c_str(),
+                             D.c_str(),
+                             H.c_str(),
+                             M.c_str(),
+                             H.c_str(),
+                             where.c_str()
+                             );
 
-        while(pStmt->FetchRow())
+
+        try
         {
-            Campaign *camp = new Campaign(
-                        pStmt->GetColumnInt64(0),
-                        pStmt->GetColumnString(1),
-                        pStmt->GetColumnString(2),
-                        pStmt->GetColumnString(3),
-                        pStmt->GetColumnBool(4),
-                        pStmt->GetColumnInt(6),
-                        pStmt->GetColumnBool(7),
-                        pStmt->GetColumnString(8),
-                        pStmt->GetColumnInt(9),
-                        pStmt->GetColumnString(10),
-                        pStmt->GetColumnInt(11),
-                        pStmt->GetColumnInt(12),
-                        pStmt->GetColumnInt(13)
-                    );
-            placeResult.push_back(camp);
+            pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
+            pStmt->Sql(cmd);
+
+            while(pStmt->FetchRow())
+            {
+                Campaign *camp = new Campaign(
+                            pStmt->GetColumnInt64(0),
+                            pStmt->GetColumnString(1),
+                            pStmt->GetColumnString(2),
+                            pStmt->GetColumnString(3),
+                            pStmt->GetColumnBool(4),
+                            pStmt->GetColumnInt(6),
+                            pStmt->GetColumnBool(7),
+                            pStmt->GetColumnString(8),
+                            pStmt->GetColumnInt(9),
+                            pStmt->GetColumnString(10),
+                            pStmt->GetColumnInt(11),
+                            pStmt->GetColumnInt(12),
+                            pStmt->GetColumnInt(13)
+                        );
+                placeResult.push_back(camp);
+            }
+
+            pStmt->FreeQuery();
+
+            delete pStmt;
+
         }
-
-        pStmt->FreeQuery();
-
-        delete pStmt;
-
-    }
-    catch(Kompex::SQLiteException &ex)
-    {
-        std::clog<<"["<<pthread_self()<<"] error: "<<__func__
-                 <<ex.GetString()
-                 <<" \n"
-                 <<cmd
-                 <<params->get_.c_str()
-                 <<params->post_.c_str()
-                 <<std::endl;
-    }
-
-    where = "ca.social = 1 and ca.retargeting=0";
-    bzero(cmd,sizeof(cmd));
-    sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
-                         params->getCountry().c_str(),
-                         params->getRegion().c_str(),
-                         params->getDevice().c_str(),
-                         informer->domainId,
-                         informer->domainId,
-                         informer->accountId,
-                         informer->id,
-                         informer->domainId,
-                         informer->domainId,
-                         informer->accountId,
-                         informer->accountId,
-                         informer->id,
-                         informer->id,
-                         D.c_str(),
-                         H.c_str(),
-                         M.c_str(),
-                         H.c_str(),
-                         D.c_str(),
-                         H.c_str(),
-                         M.c_str(),
-                         H.c_str(),
-                         where.c_str()
-                         );
-
-
-    try
-    {
-        pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
-        pStmt->Sql(cmd);
-
-        while(pStmt->FetchRow())
+        catch(Kompex::SQLiteException &ex)
         {
-            Campaign *camp = new Campaign(
-                        pStmt->GetColumnInt64(0),
-                        pStmt->GetColumnString(1),
-                        pStmt->GetColumnString(2),
-                        pStmt->GetColumnString(3),
-                        pStmt->GetColumnBool(4),
-                        pStmt->GetColumnInt(6),
-                        pStmt->GetColumnBool(7),
-                        pStmt->GetColumnString(8),
-                        pStmt->GetColumnInt(9),
-                        pStmt->GetColumnString(10),
-                        pStmt->GetColumnInt(11),
-                        pStmt->GetColumnInt(12),
-                        pStmt->GetColumnInt(13)
-                    );
-            socialResult.push_back(camp);
+            std::clog<<"["<<pthread_self()<<"] error: "<<__func__
+                     <<ex.GetString()
+                     <<" \n"
+                     <<cmd
+                     <<params->get_.c_str()
+                     <<params->post_.c_str()
+                     <<std::endl;
         }
-
-        pStmt->FreeQuery();
-
-        delete pStmt;
-
-    }
-    catch(Kompex::SQLiteException &ex)
-    {
-        std::clog<<"["<<pthread_self()<<"] error: "<<__func__
-                 <<ex.GetString()
-                 <<" \n"
-                 <<cmd
-                 <<params->get_.c_str()
-                 <<params->post_.c_str()
-                 <<std::endl;
-    }
-
-    where = "ca.social = 0 and ca.retargeting=1 and ca.retargeting_type = 'account'";
-    bzero(cmd,sizeof(cmd));
-    sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
-                         params->getCountry().c_str(),
-                         params->getRegion().c_str(),
-                         params->getDevice().c_str(),
-                         informer->domainId,
-                         informer->domainId,
-                         informer->accountId,
-                         informer->id,
-                         informer->domainId,
-                         informer->domainId,
-                         informer->accountId,
-                         informer->accountId,
-                         informer->id,
-                         informer->id,
-                         D.c_str(),
-                         H.c_str(),
-                         M.c_str(),
-                         H.c_str(),
-                         D.c_str(),
-                         H.c_str(),
-                         M.c_str(),
-                         H.c_str(),
-                         where.c_str()
-                         );
-
-
-    try
-    {
-        pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
-        pStmt->Sql(cmd);
-
-        while(pStmt->FetchRow())
-        {
-            Campaign *camp = new Campaign(
-                        pStmt->GetColumnInt64(0),
-                        pStmt->GetColumnString(1),
-                        pStmt->GetColumnString(2),
-                        pStmt->GetColumnString(3),
-                        pStmt->GetColumnBool(4),
-                        pStmt->GetColumnInt(6),
-                        pStmt->GetColumnBool(7),
-                        pStmt->GetColumnString(8),
-                        pStmt->GetColumnInt(9),
-                        pStmt->GetColumnString(10),
-                        pStmt->GetColumnInt(11),
-                        pStmt->GetColumnInt(12),
-                        pStmt->GetColumnInt(13)
-                    );
-            retargetingAccountResult.push_back(camp);
-        }
-
-        pStmt->FreeQuery();
-
-        delete pStmt;
-
-    }
-    catch(Kompex::SQLiteException &ex)
-    {
-        std::clog<<"["<<pthread_self()<<"] error: "<<__func__
-                 <<ex.GetString()
-                 <<" \n"
-                 <<cmd
-                 <<params->get_.c_str()
-                 <<params->post_.c_str()
-                 <<std::endl;
-    }
-
-    where = "ca.social = 0 and ca.retargeting=1 and ca.retargeting_type = 'offer'";
-    bzero(cmd,sizeof(cmd));
-    sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
-                         params->getCountry().c_str(),
-                         params->getRegion().c_str(),
-                         params->getDevice().c_str(),
-                         informer->domainId,
-                         informer->domainId,
-                         informer->accountId,
-                         informer->id,
-                         informer->domainId,
-                         informer->domainId,
-                         informer->accountId,
-                         informer->accountId,
-                         informer->id,
-                         informer->id,
-                         D.c_str(),
-                         H.c_str(),
-                         M.c_str(),
-                         H.c_str(),
-                         D.c_str(),
-                         H.c_str(),
-                         M.c_str(),
-                         H.c_str(),
-                         where.c_str()
-                         );
-
-
-    try
-    {
-        pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
-        pStmt->Sql(cmd);
-
-        while(pStmt->FetchRow())
-        {
-            Campaign *camp = new Campaign(
-                        pStmt->GetColumnInt64(0),
-                        pStmt->GetColumnString(1),
-                        pStmt->GetColumnString(2),
-                        pStmt->GetColumnString(3),
-                        pStmt->GetColumnBool(4),
-                        pStmt->GetColumnInt(6),
-                        pStmt->GetColumnBool(7),
-                        pStmt->GetColumnString(8),
-                        pStmt->GetColumnInt(9),
-                        pStmt->GetColumnString(10),
-                        pStmt->GetColumnInt(11),
-                        pStmt->GetColumnInt(12),
-                        pStmt->GetColumnInt(13)
-                    );
-            retargetingResult.push_back(camp);
-        }
-
-        pStmt->FreeQuery();
-
-        delete pStmt;
-
-    }
-    catch(Kompex::SQLiteException &ex)
-    {
-        std::clog<<"["<<pthread_self()<<"] error: "<<__func__
-                 <<ex.GetString()
-                 <<" \n"
-                 <<cmd
-                 <<params->get_.c_str()
-                 <<params->post_.c_str()
-                 <<std::endl;
     }
     #ifdef DEBUG
-        auto elapsed = std::chrono::high_resolution_clock::now() - start;
+        auto elapsed = std::chrono::high_resolution_clock::now() - start1;
         long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+        printf("Time %s taken: %lld \n", __func__,  microseconds);
+        printf("%s\n","------------------------------------------------------------------");
+        start1 = std::chrono::high_resolution_clock::now();
+    #endif // DEBUG
+
+    if (params->isSocial())
+    {
+        where = (boost::format(" ca.social = %d and ca.retargeting=%d and %s and %s ") % 1 % 0 % params->getGender() % params->getCost()  ).str();
+        bzero(cmd,sizeof(cmd));
+        sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
+                             "idx_Campaign_social_gender_cost",
+                             params->getCountry().c_str(),
+                             params->getRegion().c_str(),
+                             params->getDevice().c_str(),
+                             informer->domainId,
+                             informer->domainId,
+                             informer->accountId,
+                             informer->id,
+                             informer->domainId,
+                             informer->domainId,
+                             informer->accountId,
+                             informer->accountId,
+                             informer->id,
+                             informer->id,
+                             D.c_str(),
+                             H.c_str(),
+                             M.c_str(),
+                             H.c_str(),
+                             D.c_str(),
+                             H.c_str(),
+                             M.c_str(),
+                             H.c_str(),
+                             where.c_str()
+                             );
+
+
+        try
+        {
+            pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
+            pStmt->Sql(cmd);
+
+            while(pStmt->FetchRow())
+            {
+                Campaign *camp = new Campaign(
+                            pStmt->GetColumnInt64(0),
+                            pStmt->GetColumnString(1),
+                            pStmt->GetColumnString(2),
+                            pStmt->GetColumnString(3),
+                            pStmt->GetColumnBool(4),
+                            pStmt->GetColumnInt(6),
+                            pStmt->GetColumnBool(7),
+                            pStmt->GetColumnString(8),
+                            pStmt->GetColumnInt(9),
+                            pStmt->GetColumnString(10),
+                            pStmt->GetColumnInt(11),
+                            pStmt->GetColumnInt(12),
+                            pStmt->GetColumnInt(13)
+                        );
+                socialResult.push_back(camp);
+            }
+
+            pStmt->FreeQuery();
+
+            delete pStmt;
+
+        }
+        catch(Kompex::SQLiteException &ex)
+        {
+            std::clog<<"["<<pthread_self()<<"] error: "<<__func__
+                     <<ex.GetString()
+                     <<" \n"
+                     <<cmd
+                     <<params->get_.c_str()
+                     <<params->post_.c_str()
+                     <<std::endl;
+        }
+    }
+
+    #ifdef DEBUG
+        elapsed = std::chrono::high_resolution_clock::now() - start1;
+        microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+        printf("Time %s taken: %lld \n", __func__,  microseconds);
+        printf("%s\n","------------------------------------------------------------------");
+        start1 = std::chrono::high_resolution_clock::now();
+    #endif // DEBUG
+    if (params->isRetargering())
+    {
+        where = (boost::format(" ca.social = %d and ca.retargeting=%d and ca.retargeting_type = '%s'  %s ") % 0 % 1 % "account" % params->getRetargetingAccountsIds()  ).str();
+        bzero(cmd,sizeof(cmd));
+        sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
+                            "idx_Campaign_retargeting_account_type",
+                             params->getCountry().c_str(),
+                             params->getRegion().c_str(),
+                             params->getDevice().c_str(),
+                             informer->domainId,
+                             informer->domainId,
+                             informer->accountId,
+                             informer->id,
+                             informer->domainId,
+                             informer->domainId,
+                             informer->accountId,
+                             informer->accountId,
+                             informer->id,
+                             informer->id,
+                             D.c_str(),
+                             H.c_str(),
+                             M.c_str(),
+                             H.c_str(),
+                             D.c_str(),
+                             H.c_str(),
+                             M.c_str(),
+                             H.c_str(),
+                             where.c_str()
+                             );
+
+
+        try
+        {
+            pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
+            pStmt->Sql(cmd);
+
+            while(pStmt->FetchRow())
+            {
+                Campaign *camp = new Campaign(
+                            pStmt->GetColumnInt64(0),
+                            pStmt->GetColumnString(1),
+                            pStmt->GetColumnString(2),
+                            pStmt->GetColumnString(3),
+                            pStmt->GetColumnBool(4),
+                            pStmt->GetColumnInt(6),
+                            pStmt->GetColumnBool(7),
+                            pStmt->GetColumnString(8),
+                            pStmt->GetColumnInt(9),
+                            pStmt->GetColumnString(10),
+                            pStmt->GetColumnInt(11),
+                            pStmt->GetColumnInt(12),
+                            pStmt->GetColumnInt(13)
+                        );
+                retargetingAccountResult.push_back(camp);
+            }
+
+            pStmt->FreeQuery();
+
+            delete pStmt;
+
+        }
+        catch(Kompex::SQLiteException &ex)
+        {
+            std::clog<<"["<<pthread_self()<<"] error: "<<__func__
+                     <<ex.GetString()
+                     <<" \n"
+                     <<cmd
+                     <<params->get_.c_str()
+                     <<params->post_.c_str()
+                     <<std::endl;
+        }
+    #ifdef DEBUG
+        elapsed = std::chrono::high_resolution_clock::now() - start1;
+        microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+        printf("Time %s taken: %lld \n", __func__,  microseconds);
+        printf("%s\n","------------------------------------------------------------------");
+        start1 = std::chrono::high_resolution_clock::now();
+    #endif // DEBUG
+
+        where = (boost::format(" ca.social = %d and ca.retargeting=%d and ca.retargeting_type = '%s' and  %s ") % 0 % 1 % "offer" % params->getRetargetingAccountIds()  ).str();
+        bzero(cmd,sizeof(cmd));
+        sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
+                            "idx_Campaign_retargeting_offer_type",
+                             params->getCountry().c_str(),
+                             params->getRegion().c_str(),
+                             params->getDevice().c_str(),
+                             informer->domainId,
+                             informer->domainId,
+                             informer->accountId,
+                             informer->id,
+                             informer->domainId,
+                             informer->domainId,
+                             informer->accountId,
+                             informer->accountId,
+                             informer->id,
+                             informer->id,
+                             D.c_str(),
+                             H.c_str(),
+                             M.c_str(),
+                             H.c_str(),
+                             D.c_str(),
+                             H.c_str(),
+                             M.c_str(),
+                             H.c_str(),
+                             where.c_str()
+                             );
+
+
+        try
+        {
+            pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
+            pStmt->Sql(cmd);
+
+            while(pStmt->FetchRow())
+            {
+                Campaign *camp = new Campaign(
+                            pStmt->GetColumnInt64(0),
+                            pStmt->GetColumnString(1),
+                            pStmt->GetColumnString(2),
+                            pStmt->GetColumnString(3),
+                            pStmt->GetColumnBool(4),
+                            pStmt->GetColumnInt(6),
+                            pStmt->GetColumnBool(7),
+                            pStmt->GetColumnString(8),
+                            pStmt->GetColumnInt(9),
+                            pStmt->GetColumnString(10),
+                            pStmt->GetColumnInt(11),
+                            pStmt->GetColumnInt(12),
+                            pStmt->GetColumnInt(13)
+                        );
+                retargetingResult.push_back(camp);
+            }
+
+            pStmt->FreeQuery();
+
+            delete pStmt;
+
+        }
+        catch(Kompex::SQLiteException &ex)
+        {
+            std::clog<<"["<<pthread_self()<<"] error: "<<__func__
+                     <<ex.GetString()
+                     <<" \n"
+                     <<cmd
+                     <<params->get_.c_str()
+                     <<params->post_.c_str()
+                     <<std::endl;
+        }
+    }
+    #ifdef DEBUG
+        elapsed = std::chrono::high_resolution_clock::now() - start1;
+        microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+        printf("Time %s taken: %lld \n", __func__,  microseconds);
+        printf("%s\n","------------------------------------------------------------------");
+        elapsed = std::chrono::high_resolution_clock::now() - start;
+        microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
         printf("Time %s taken: %lld \n", __func__,  microseconds);
         printf("%s\n","------------------------------------------------------------------");
     #endif // DEBUG

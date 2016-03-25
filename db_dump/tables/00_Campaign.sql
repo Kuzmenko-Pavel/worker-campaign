@@ -26,6 +26,8 @@ UNIQUE (guid) ON CONFLICT IGNORE
 CREATE UNIQUE INDEX IF NOT EXISTS idx_Campaign_guid ON Campaign (guid ASC);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_Campaign_id ON Campaign (id ASC);
 
-CREATE INDEX IF NOT EXISTS idx_Campaign_social ON Campaign (id ASC, social ASC) WHERE retargeting=0;
+CREATE INDEX IF NOT EXISTS idx_Campaign_nosocial_gender_cost ON Campaign (id ASC, gender ASC, cost ASC ) WHERE retargeting=0 and social = 0;
+CREATE INDEX IF NOT EXISTS idx_Campaign_social_gender_cost ON Campaign (id ASC, gender ASC, cost ASC ) WHERE retargeting=0 and social = 1;
 
-CREATE INDEX IF NOT EXISTS idx_Campaign_retargeting_account_type ON Campaign (id ASC, retargeting ASC, account ASC, retargeting_type ASC) WHERE retargeting=1 and social = 0;
+CREATE INDEX IF NOT EXISTS idx_Campaign_retargeting_offer_type ON Campaign (id ASC, account ASC) WHERE retargeting=1 and social = 0 and retargeting_type = "offer";
+CREATE INDEX IF NOT EXISTS idx_Campaign_retargeting_account_type ON Campaign (id ASC, account ASC, gender ASC, cost ASC ) WHERE retargeting=1 and social = 0 and retargeting_type = "account";

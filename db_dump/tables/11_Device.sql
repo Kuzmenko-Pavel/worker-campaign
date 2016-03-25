@@ -6,4 +6,4 @@ UNIQUE (name),
 UNIQUE (name) ON CONFLICT IGNORE
 );
 INSERT INTO Device(name) VALUES('**');
-CREATE INDEX IF NOT EXISTS idx_Device_name ON Device (name ASC);
+CREATE INDEX IF NOT EXISTS idx_Device_name ON Device (name ASC, id);

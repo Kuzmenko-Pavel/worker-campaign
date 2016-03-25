@@ -45,8 +45,6 @@ std::string Core::Process(Params *prms)
         std::clog<<" country:"<<params->getCountry();
         std::clog<<" region:"<<params->getRegion();
         std::clog<<" cookie:"<<params->getCookieId();
-        std::clog<<" context:"<<params->getContext();
-        std::clog<<" search:"<<params->getSearch();
         return retHtml; 
     }
     //get campaign list

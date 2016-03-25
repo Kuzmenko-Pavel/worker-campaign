@@ -380,6 +380,7 @@ void CgiService::ProcessRequest(FCGX_Request *req, Core *core)
                         auto elapsed = std::chrono::high_resolution_clock::now() - start;
                         long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
                         printf("Time %s taken: %lld \n", __func__,  microseconds);
+                        Log::err("Time %s taken: %lld \n", __func__,  microseconds);
                         printf("%s\n","------------------------------------------------------------------");
                     #endif // DEBUG
                 }

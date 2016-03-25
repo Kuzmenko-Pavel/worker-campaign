@@ -1,5 +1,5 @@
 #include <sstream>
-
+#include <boost/format.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string.hpp>
@@ -105,7 +105,7 @@ Params &Params::parse()
     {
         informer_id_int = params_["informer_id_int"];
     }
-    if (params_.count("test") && params_["test"].is_number())
+    if (params_.count("test") && params_["test"].is_boolean())
     {
         test_mode = params_["test"];
     }
@@ -145,6 +145,101 @@ Params &Params::parse()
     {
         device_ = params_["device"];
     }
+    if (informer_.count("place_branch") && informer_["place_branch"].is_boolean())
+    {
+        place_branch = informer_["place_branch"];
+    }
+    if (informer_.count("retargeting_branch") && informer_["retargeting_branch"].is_boolean())
+    {
+        retargeting_branch = informer_["retargeting_branch"];
+    }
+    if (informer_.count("social_branch") && informer_["social_branch"].is_boolean())
+    {
+        social_branch = informer_["social_branch"]; 
+    }
+    if (params_.count("cost") && params_["cost"].is_number())
+    {
+        cost_ = params_["cost"];
+    }
+    if (params_.count("gender") && params_["gender"].is_number())
+    {
+        gender_ = params_["gender"];
+    }
+    if (params_.count("retargeting") && params_["retargeting"].is_string())
+    {
+        std::vector<std::string> retargeting_offers;
+        std::string retargeting = params_["retargeting"];
+        if(retargeting != "")
+        {
+            boost::algorithm::to_lower(retargeting);
+            boost::split(retargeting_offers, retargeting, boost::is_any_of(";"));
+            if (retargeting_offers.size()> 50)
+            {
+                retargeting_offers.erase(retargeting_offers.begin()+49, retargeting_offers.end());
+            }
+        }
+        for (unsigned i=0; i<retargeting_offers.size() ; i++)
+        {
+            std::vector<std::string> par;
+            boost::split(par, retargeting_offers[i], boost::is_any_of("~"));
+            if (!par.empty() && par.size() >= 3)
+            {
+                retargetingAccountIds.push_back((boost::format("'%s'") % par[2]).str());
+            }
+        }
+        std::sort(retargetingAccountIds.begin(), retargetingAccountIds.end());
+        retargetingAccountIds.erase(std::unique(retargetingAccountIds.begin(), retargetingAccountIds.end()), retargetingAccountIds.end());
+    }
+    if (params_.count("cost_accounts") && params_["cost_accounts"].is_string())
+    {
+        std::vector<std::string> cost_accounts;
+        std::string cost_account = params_["cost_accounts"];
+        if(cost_account != "")
+        {
+            boost::algorithm::to_lower(cost_account);
+            boost::split(cost_accounts, cost_account, boost::is_any_of(";"));
+            if (cost_accounts.size()> 50)
+            {
+                cost_accounts.erase(cost_accounts.begin()+49, cost_accounts.end());
+            }
+        }
+        for (unsigned i=0; i<cost_accounts.size() ; i++)
+        {
+            std::vector<std::string> par;
+            boost::split(par, cost_accounts[i], boost::is_any_of("~"));
+            if (!par.empty() && par.size() >= 2)
+            {
+                retargetingAccountsIds.push_back((boost::format("'%s'") % par[0]).str());
+                cost_accounts_.insert(std::pair<std::string,int>((boost::format("'%s'") % par[0]).str(),stoi(par[1])));
+            }
+        }
+    }
+    if (params_.count("gender_accounts") && params_["gender_accounts"].is_string())
+    {
+        std::vector<std::string> gender_accounts;
+        std::string gender_account = params_["gender_accounts"];
+        if(gender_account != "")
+        {
+            boost::algorithm::to_lower(gender_account);
+            boost::split(gender_accounts, gender_account, boost::is_any_of(";"));
+            if (gender_accounts.size()> 50)
+            {
+                gender_accounts.erase(gender_accounts.begin()+49, gender_accounts.end());
+            }
+        }
+        for (unsigned i=0; i<gender_accounts.size() ; i++)
+        {
+            std::vector<std::string> gar;
+            boost::split(gar, gender_accounts[i], boost::is_any_of("~"));
+            if (!gar.empty() && gar.size() >= 2)
+            {
+                retargetingAccountsIds.push_back((boost::format("'%s'") % gar[0]).str());
+                gender_accounts_.insert(std::pair<std::string,int>((boost::format("'%s'") % gar[0]).str(),stoi(gar[1])));
+            }
+        }
+    }
+    std::sort(retargetingAccountsIds.begin(), retargetingAccountsIds.end());
+    retargetingAccountsIds.erase(std::unique(retargetingAccountsIds.begin(), retargetingAccountsIds.end()), retargetingAccountsIds.end());
     return *this;
 }
 std::string Params::getCookieId() const
@@ -172,6 +267,18 @@ std::string Params::getIP() const
 bool Params::isTestMode() const
 {
     return test_mode;
+}
+bool Params::isPlace() const
+{
+    return place_branch;
+}
+bool Params::isSocial() const
+{
+    return social_branch;
+}
+bool Params::isRetargering() const
+{
+    return retargeting_branch;
 }
 long long Params::getInformerIdInt() const
 {
@@ -216,16 +323,88 @@ std::string Params::getH() const
     return H_;
 
 }
-std::string Params::getContext() const
-{
-    return context_;
-
-}
-std::string Params::getSearch() const
-{
-    return search_;
-}
 std::string Params::getDevice() const
 {
     return device_;
+}
+std::string Params::getCost() const
+{
+    std::string result;
+    if (cost_ > 0)
+    {
+        result = (boost::format(" (ca.cost=%d or ca.cost=%d) ") % 0 % cost_ ).str();
+    }
+    else
+    {
+        result = (boost::format(" ca.cost=%d ") % 0 ).str();
+    }
+    return result;
+
+}
+std::string Params::getGender() const
+{
+    std::string result;
+    if (gender_ > 0)
+    {
+        result = (boost::format(" (ca.gender=%d or ca.gender=%d) ") % 0 % gender_ ).str();
+    }
+    else
+    {
+        result = (boost::format(" ca.gender=%d ") % 0 ).str();
+    }
+    return result;
+
+}
+std::string Params::getRetargetingAccountIds() const
+{
+    std::string result;
+    result = (boost::format(" ca.account IN (%s) ") %  boost::algorithm::join(retargetingAccountIds, ", ")).str();
+    return result;
+
+}
+std::string Params::getRetargetingAccountsIds() const
+{   
+    std::string res;
+    std::vector<std::string> result;
+    std::string g;
+    std::string c;
+    int gender;
+    int cost;
+    for (unsigned i=0; i<retargetingAccountsIds.size() ; i++)
+    {
+        gender = 0;
+        cost = 0;
+        auto it = gender_accounts_.find(retargetingAccountsIds[i]);
+        if (it != gender_accounts_.end())
+        {
+            gender = (*it).second;
+        }
+        it = cost_accounts_.find(retargetingAccountsIds[i]);
+        if (it != cost_accounts_.end())
+        {
+            cost = (*it).second;
+        }
+        if (cost_ > 0)
+        {
+            c = (boost::format(" (ca.cost=%d or ca.cost=%d) ") % 0 % cost_ ).str();
+        }
+        else
+        {
+            c = (boost::format(" ca.cost=%d ") % 0 ).str();
+        }
+        if (gender_ > 0)
+        {
+            g = (boost::format(" (ca.gender=%d or ca.gender=%d) ") % 0 % gender_ ).str();
+        }
+        else
+        {
+            g = (boost::format(" ca.gender=%d ") % 0 ).str();
+        }
+        result.push_back((boost::format(" ( ca.account = %s and %s and %s ) ") % retargetingAccountsIds[i] % c % g ).str());
+    }
+    if (result.size() > 0)
+    {
+        res = " AND (" + boost::algorithm::join(result, " OR ") + " ) ";
+    }
+    return res;
 }

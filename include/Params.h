@@ -43,14 +43,19 @@ public:
     long long getInformerIdInt() const;
     boost::posix_time::ptime getTime() const;
     bool isTestMode() const;
+    bool isPlace() const;
+    bool isRetargering() const;
+    bool isSocial() const;
     std::string getw() const;
     std::string geth() const;
     std::string getD() const;
     std::string getM() const;
     std::string getH() const;
-    std::string getContext() const;
-    std::string getSearch() const;
     std::string getDevice() const;
+    std::string getCost() const;
+    std::string getGender() const;
+    std::string getRetargetingAccountIds() const;
+    std::string getRetargetingAccountsIds() const;
 
 private:
     boost::u32regex replaceSymbol;
@@ -58,6 +63,9 @@ private:
     std::string informer_id;
     long long informer_id_int;
     bool test_mode;
+    bool place_branch;
+    bool social_branch;
+    bool retargeting_branch;
     std::string country_;
     std::string region_;
     std::string context_short_;
@@ -72,10 +80,12 @@ private:
     std::string context_;
     std::string device_;
     std::string search_;
-    std::string cost_;
-    std::string gender_;
+    int cost_;
+    int gender_;
     std::map<std::string,int> cost_accounts_;
     std::map<std::string,int> gender_accounts_;
+    std::vector<std::string> retargetingAccountIds;
+    std::vector<std::string> retargetingAccountsIds;
 };
 
 #endif // PARAMS_H

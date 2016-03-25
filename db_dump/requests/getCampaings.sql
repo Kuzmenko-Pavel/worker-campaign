@@ -12,7 +12,7 @@ SELECT ca.id,
        ca.offer_by_campaign_unique,
        ca.UnicImpressionLot,
        ca.html_notification     
-FROM Campaign AS ca
+FROM Campaign AS ca INDEXED BY %s
 INNER JOIN (
     SELECT  gt.id_cam  FROM geoTargeting AS gt
     INNER JOIN GeoLiteCity AS gtl ON gt.id_geo=gtl.id WHERE (gtl.country='%q' AND (gtl.city='%q' OR gtl.city='*')) OR (gtl.country='*' AND gtl.city='*') 

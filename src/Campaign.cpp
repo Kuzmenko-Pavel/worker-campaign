@@ -126,7 +126,7 @@ WHERE c.retargeting=0;");
             Campaign *c = new Campaign();
             c->title = pStmt->GetColumnString(0);
             c->social = pStmt->GetColumnInt(1) ? true : false;
-            c->setType(pStmt->GetColumnInt(3));
+            c->setType(pStmt->GetColumnInt(2));
             res.push_back(c);
         }
 

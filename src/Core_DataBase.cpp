@@ -213,82 +213,85 @@ void Core_DataBase::getCampaign(Params *_params, Campaign::Vector &placeResult, 
     #endif // DEBUG
     if (params->isRetargering())
     {
-        where = (boost::format(" ca.social = %d and ca.retargeting=%d and ca.retargeting_type = '%s'  %s ") % 0 % 1 % "account" % params->getRetargetingAccountsIds()  ).str();
-        bzero(cmd,sizeof(cmd));
-        sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
-                            "idx_Campaign_retargeting_account_type",
-                             params->getCountry().c_str(),
-                             params->getRegion().c_str(),
-                             params->getDevice().c_str(),
-                             informer->domainId,
-                             informer->domainId,
-                             informer->accountId,
-                             informer->id,
-                             informer->domainId,
-                             informer->domainId,
-                             informer->accountId,
-                             informer->accountId,
-                             informer->id,
-                             informer->id,
-                             D.c_str(),
-                             H.c_str(),
-                             M.c_str(),
-                             H.c_str(),
-                             D.c_str(),
-                             H.c_str(),
-                             M.c_str(),
-                             H.c_str(),
-                             where.c_str()
-                             );
-
-
-        try
+        if (!params->getRetargetingAccountsIds().empty())
         {
-            pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
-            pStmt->Sql(cmd);
+            where = (boost::format(" ca.social = %d and ca.retargeting=%d and ca.retargeting_type = '%s'  %s ") % 0 % 1 % "account" % params->getRetargetingAccountsIds()  ).str();
+            bzero(cmd,sizeof(cmd));
+            sqlite3_snprintf(len, cmd, cfg->campaingSqlStr.c_str(),
+                                "idx_Campaign_retargeting_account_type",
+                                 params->getCountry().c_str(),
+                                 params->getRegion().c_str(),
+                                 params->getDevice().c_str(),
+                                 informer->domainId,
+                                 informer->domainId,
+                                 informer->accountId,
+                                 informer->id,
+                                 informer->domainId,
+                                 informer->domainId,
+                                 informer->accountId,
+                                 informer->accountId,
+                                 informer->id,
+                                 informer->id,
+                                 D.c_str(),
+                                 H.c_str(),
+                                 M.c_str(),
+                                 H.c_str(),
+                                 D.c_str(),
+                                 H.c_str(),
+                                 M.c_str(),
+                                 H.c_str(),
+                                 where.c_str()
+                                 );
 
-            while(pStmt->FetchRow())
+
+            try
             {
-                Campaign *camp = new Campaign(
-                            pStmt->GetColumnInt64(0),
-                            pStmt->GetColumnString(1),
-                            pStmt->GetColumnString(2),
-                            pStmt->GetColumnString(3),
-                            pStmt->GetColumnBool(4),
-                            pStmt->GetColumnInt(6),
-                            pStmt->GetColumnBool(7),
-                            pStmt->GetColumnString(8),
-                            pStmt->GetColumnInt(9),
-                            pStmt->GetColumnString(10),
-                            pStmt->GetColumnInt(11),
-                            pStmt->GetColumnInt(12),
-                            pStmt->GetColumnInt(13)
-                        );
-                retargetingAccountResult.push_back(camp);
+                pStmt = new Kompex::SQLiteStatement(cfg->pDb->pDatabase);
+                pStmt->Sql(cmd);
+
+                while(pStmt->FetchRow())
+                {
+                    Campaign *camp = new Campaign(
+                                pStmt->GetColumnInt64(0),
+                                pStmt->GetColumnString(1),
+                                pStmt->GetColumnString(2),
+                                pStmt->GetColumnString(3),
+                                pStmt->GetColumnBool(4),
+                                pStmt->GetColumnInt(6),
+                                pStmt->GetColumnBool(7),
+                                pStmt->GetColumnString(8),
+                                pStmt->GetColumnInt(9),
+                                pStmt->GetColumnString(10),
+                                pStmt->GetColumnInt(11),
+                                pStmt->GetColumnInt(12),
+                                pStmt->GetColumnInt(13)
+                            );
+                    retargetingAccountResult.push_back(camp);
+                }
+
+                pStmt->FreeQuery();
+
+                delete pStmt;
+
             }
-
-            pStmt->FreeQuery();
-
-            delete pStmt;
-
+            catch(Kompex::SQLiteException &ex)
+            {
+                std::clog<<"["<<pthread_self()<<"] error: "<<__func__
+                         <<ex.GetString()
+                         <<" \n"
+                         <<cmd
+                         <<params->get_.c_str()
+                         <<params->post_.c_str()
+                         <<std::endl;
+            }
+        #ifdef DEBUG
+            elapsed = std::chrono::high_resolution_clock::now() - start1;
+            microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+            printf("Time %s taken: %lld \n", __func__,  microseconds);
+            printf("%s\n","------------------------------------------------------------------");
+            start1 = std::chrono::high_resolution_clock::now();
+        #endif // DEBUG
         }
-        catch(Kompex::SQLiteException &ex)
-        {
-            std::clog<<"["<<pthread_self()<<"] error: "<<__func__
-                     <<ex.GetString()
-                     <<" \n"
-                     <<cmd
-                     <<params->get_.c_str()
-                     <<params->post_.c_str()
-                     <<std::endl;
-        }
-    #ifdef DEBUG
-        elapsed = std::chrono::high_resolution_clock::now() - start1;
-        microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-        printf("Time %s taken: %lld \n", __func__,  microseconds);
-        printf("%s\n","------------------------------------------------------------------");
-        start1 = std::chrono::high_resolution_clock::now();
-    #endif // DEBUG
 
         where = (boost::format(" ca.social = %d and ca.retargeting=%d and ca.retargeting_type = '%s' and  %s ") % 0 % 1 % "offer" % params->getRetargetingAccountIds()  ).str();
         bzero(cmd,sizeof(cmd));

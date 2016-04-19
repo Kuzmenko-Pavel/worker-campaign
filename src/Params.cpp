@@ -173,9 +173,9 @@ Params &Params::parse()
         {
             boost::algorithm::to_lower(retargeting);
             boost::split(retargeting_offers, retargeting, boost::is_any_of(";"));
-            if (retargeting_offers.size()> 50)
+            if (retargeting_offers.size()> 200)
             {
-                retargeting_offers.erase(retargeting_offers.begin()+49, retargeting_offers.end());
+                retargeting_offers.erase(retargeting_offers.begin()+199, retargeting_offers.end());
             }
         }
         for (unsigned i=0; i<retargeting_offers.size() ; i++)
@@ -198,9 +198,9 @@ Params &Params::parse()
         {
             boost::algorithm::to_lower(cost_account);
             boost::split(cost_accounts, cost_account, boost::is_any_of(";"));
-            if (cost_accounts.size()> 50)
+            if (cost_accounts.size()> 200)
             {
-                cost_accounts.erase(cost_accounts.begin()+49, cost_accounts.end());
+                cost_accounts.erase(cost_accounts.begin()+199, cost_accounts.end());
             }
         }
         for (unsigned i=0; i<cost_accounts.size() ; i++)
@@ -222,9 +222,9 @@ Params &Params::parse()
         {
             boost::algorithm::to_lower(gender_account);
             boost::split(gender_accounts, gender_account, boost::is_any_of(";"));
-            if (gender_accounts.size()> 50)
+            if (gender_accounts.size()> 200)
             {
-                gender_accounts.erase(gender_accounts.begin()+49, gender_accounts.end());
+                gender_accounts.erase(gender_accounts.begin()+199, gender_accounts.end());
             }
         }
         for (unsigned i=0; i<gender_accounts.size() ; i++)

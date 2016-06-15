@@ -21,6 +21,16 @@ Params::Params()
     time_ = boost::posix_time::second_clock::local_time();
 }
 
+Params &Params::ip(const std::string &ip)
+{
+    ip_ = ip;
+    country_ = geoip->country_code_by_addr(ip_);
+    if (country_ == "NOT FOUND")
+        region_ = "*";
+    region_ = geoip->region_code_by_addr(ip_);
+    return *this;
+}
+
 std::string time_t_to_string(time_t t)
 {
     std::stringstream sstr;
@@ -111,15 +121,24 @@ Params &Params::parse()
     }
     if (params_.count("country") && params_["country"].is_string())
     {
-        country_ = params_["country"];
+        if (params_["country"] != "")
+        {
+            country_ = params_["country"];
+        }
     }
     if (params_.count("region") && params_["region"].is_string())
     {
-        region_ = params_["region"];
+        if (params_["region"] != "")
+        {
+            region_ = params_["region"];
+        }
     }
     if (params_.count("ip") && params_["ip"].is_string())
     {
-        ip_ = params_["ip"];
+        if (params_["ip"] != "")
+        {
+            ip_ = params_["ip"];
+        }
     }
     if (params_.count("w") && params_["w"].is_string())
     {
@@ -407,4 +426,34 @@ std::string Params::getRetargetingAccountsIds() const
         res = " AND (" + boost::algorithm::join(result, " OR ") + " ) ";
     }
     return res;
+}
+
+std::string encryptDecrypt(std::string toEncrypt, std::string ip)
+{
+    unsigned int content_length = 0;
+    content_length = ip.length();
+    char * key = new char[content_length];
+    memset(key, '0', content_length);
+    strcpy(key, ip.c_str());
+    
+    std::string output = toEncrypt;
+    for (int i = 0; i < toEncrypt.size(); i++)
+    {
+        output[i] = toEncrypt[i] ^ key[i % (sizeof(key) / sizeof(char))];
+    }
+    delete [] key;
+    return output;
+}
+nlohmann::json Params::toJson() const
+{
+    std::string token = encryptDecrypt("valid", ip_);
+    nlohmann::json j;
+    j["ip"] = ip_;
+    j["cookie"] = cookie_id_;
+    j["country"] = country_;
+    j["region"] = region_;
+    j["device"] = device_;
+    j["token"] = token;
+
+    return j;
 }

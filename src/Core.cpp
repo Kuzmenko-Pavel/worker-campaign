@@ -88,6 +88,7 @@ void Core::resultHtml()
        c_map.insert(std::pair<std::string, nlohmann::json>(std::to_string((*o)->id),(*o)->toJson()));
     }
     j["retargetingOffer"] = nlohmann::json(c_map);
+    j["params"] = params->toJson();
     retHtml = j.dump();
 }
 //-------------------------------------------------------------------------------------------------------------------

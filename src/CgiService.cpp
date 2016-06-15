@@ -348,6 +348,7 @@ void CgiService::ProcessRequest(FCGX_Request *req, Core *core)
         {
 
             Params prm = Params()
+                         .ip(ip)
                          .get(query)
                          .post(postq)
                          .cookie_id(cookie_value)

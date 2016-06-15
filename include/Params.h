@@ -27,6 +27,7 @@ public:
 
     Params();
     Params &parse();
+    Params &ip(const std::string &ip);
     Params &cookie_id(const std::string &cookie_id);
     Params &json(const std::string &json);
     Params &get(const std::string &get);
@@ -56,6 +57,7 @@ public:
     std::string getGender() const;
     std::string getRetargetingAccountIds() const;
     std::string getRetargetingAccountsIds() const;
+    nlohmann::json toJson() const;
 
 private:
     boost::u32regex replaceSymbol;

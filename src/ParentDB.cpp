@@ -429,9 +429,10 @@ void ParentDB::CampaignLoad(mongo::Query q_correct)
             Log::info(x.getStringField("account"));
             sqlite3_snprintf(sizeof(buf),buf,
                              "INSERT OR REPLACE INTO Campaign\
-                             (id,guid,title,project,social,showCoverage,impressionsPerDayLimit,retargeting,recomendet_type,recomendet_count,account,target,offer_by_campaign_unique, UnicImpressionLot, brending, html_notification \
+                             (id,guid,title,project,social,showCoverage,impressionsPerDayLimit,retargeting,recomendet_type,recomendet_count,account,target,offer_by_campaign_unique, UnicImpressionLot, brending \
+                              ,html_notification,disabled_retargiting_style, disabled_recomendet_style  \
                               , retargeting_type, cost, gender) \
-                             VALUES(%lld,'%q','%q','%q',%d,%d,%d,%d,'%q',%d,'%q','%q',%d,%d,%d, %d, '%q', %d, %d);",
+                             VALUES(%lld,'%q','%q','%q',%d,%d,%d,%d,'%q',%d,'%q','%q',%d,%d,%d, %d, %d, %d, '%q', %d, %d);",
                              long_id,
                              id.c_str(),
                              x.getStringField("title"),
@@ -448,6 +449,8 @@ void ParentDB::CampaignLoad(mongo::Query q_correct)
                              o.hasField("UnicImpressionLot") ? o.getIntField("UnicImpressionLot") : 1,
                              o.getBoolField("brending") ? 1 : 0,
                              o.getBoolField("html_notification") ? 1 : 0,
+                             x.getBoolField("disabled_retargiting_style") ? 1 : 0,
+                             x.getBoolField("disabled_recomendet_style") ? 1 : 0,
                              o.hasField("retargeting_type") ? o.getStringField("retargeting_type") : "offer",
                              o.hasField("cost") ? o.getIntField("cost") : 0,
                              o.hasField("gender") ? o.getIntField("gender") : 0

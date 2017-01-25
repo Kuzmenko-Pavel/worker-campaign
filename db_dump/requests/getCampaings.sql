@@ -11,7 +11,9 @@ SELECT ca.id,
        ca.account,
        ca.offer_by_campaign_unique,
        ca.UnicImpressionLot,
-       ca.html_notification     
+       ca.html_notification,
+       ca.disabled_retargiting_style,
+       ca.disabled_recomendet_style
 FROM Campaign AS ca INDEXED BY %s
 INNER JOIN (
     SELECT  gt.id_cam  FROM geoTargeting AS gt

@@ -19,6 +19,8 @@ target VARCHAR(100)  DEFAULT "",
 offer_by_campaign_unique SMALLINT DEFAULT 1,
 UnicImpressionLot SMALLINT DEFAULT 1,
 html_notification SMALLINT,
+disabled_retargiting_style SMALLINT DEFAULT 0,
+disabled_recomendet_style SMALLINT DEFAULT 0,
 UNIQUE (id) ON CONFLICT IGNORE,
 UNIQUE (guid) ON CONFLICT IGNORE
 ) WITHOUT ROWID;

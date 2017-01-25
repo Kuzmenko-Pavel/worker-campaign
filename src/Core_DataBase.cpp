@@ -102,7 +102,9 @@ void Core_DataBase::getCampaign(Params *_params, Campaign::Vector &placeResult, 
                             pStmt->GetColumnString(10),
                             pStmt->GetColumnInt(11),
                             pStmt->GetColumnInt(12),
-                            pStmt->GetColumnInt(13)
+                            pStmt->GetColumnInt(13),
+                            pStmt->GetColumnInt(14),
+                            pStmt->GetColumnInt(15)
                         );
                 placeResult.push_back(camp);
             }
@@ -182,7 +184,9 @@ void Core_DataBase::getCampaign(Params *_params, Campaign::Vector &placeResult, 
                             pStmt->GetColumnString(10),
                             pStmt->GetColumnInt(11),
                             pStmt->GetColumnInt(12),
-                            pStmt->GetColumnInt(13)
+                            pStmt->GetColumnInt(13),
+                            pStmt->GetColumnInt(14),
+                            pStmt->GetColumnInt(15)
                         );
                 socialResult.push_back(camp);
             }
@@ -264,7 +268,9 @@ void Core_DataBase::getCampaign(Params *_params, Campaign::Vector &placeResult, 
                                 pStmt->GetColumnString(10),
                                 pStmt->GetColumnInt(11),
                                 pStmt->GetColumnInt(12),
-                                pStmt->GetColumnInt(13)
+                                pStmt->GetColumnInt(13),
+                                pStmt->GetColumnInt(14),
+                                pStmt->GetColumnInt(15)
                             );
                     retargetingAccountResult.push_back(camp);
                 }
@@ -342,7 +348,9 @@ void Core_DataBase::getCampaign(Params *_params, Campaign::Vector &placeResult, 
                             pStmt->GetColumnString(10),
                             pStmt->GetColumnInt(11),
                             pStmt->GetColumnInt(12),
-                            pStmt->GetColumnInt(13)
+                            pStmt->GetColumnInt(13),
+                            pStmt->GetColumnInt(14),
+                            pStmt->GetColumnInt(15)
                         );
                 retargetingResult.push_back(camp);
             }

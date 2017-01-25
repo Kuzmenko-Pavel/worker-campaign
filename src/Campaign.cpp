@@ -49,7 +49,8 @@ Campaign::Campaign(long long _id) :
 }
 
 Campaign::Campaign(long long id, const std::string &guid, const std::string &title, const std::string &project, bool social, int impressionsPerDayLimit,
-        bool brending, const std::string &recomendet_type, int recomendet_count, const std::string &account, int offer_by_campaign_unique, int UnicImpressionLot, int html_notification):
+        bool brending, const std::string &recomendet_type, int recomendet_count, const std::string &account, int offer_by_campaign_unique, int UnicImpressionLot,
+        int html_notification, bool disabled_retargiting_style, bool disabled_recomendet_style ):
     id(id),
     guid(guid),
     title(title),
@@ -62,7 +63,9 @@ Campaign::Campaign(long long id, const std::string &guid, const std::string &tit
     account(account),
     offer_by_campaign_unique(offer_by_campaign_unique),
     UnicImpressionLot(UnicImpressionLot),
-    html_notification(html_notification)
+    html_notification(html_notification),
+    disabled_retargiting_style(disabled_retargiting_style),
+    disabled_recomendet_style(disabled_recomendet_style)
 {
 
 }
@@ -87,6 +90,8 @@ nlohmann::json Campaign::toJson() const
     j["campaign_offer_by_campaign_unique"] = offer_by_campaign_unique;
     j["campaign_UnicImpressionLot"] = UnicImpressionLot;
     j["campaign_html_notification"] = html_notification;
+    j["campaign_disabled_retargiting_style"] = disabled_retargiting_style;
+    j["campaign_disabled_recomendet_style"] = disabled_recomendet_style;
     return j;
 }
 //-------------------------------------------------------------------------------------------------------

@@ -355,7 +355,7 @@ std::string Params::getCost() const
     }
     else
     {
-        result = (boost::format(" ca.cost=%d ") % 0 ).str();
+        result = (boost::format(" ca.cost=%d ") % cost_ ).str();
     }
     return result;
 
@@ -369,7 +369,7 @@ std::string Params::getGender() const
     }
     else
     {
-        result = (boost::format(" ca.gender=%d ") % 0 ).str();
+        result = (boost::format(" ca.gender=%d ") % gender_ ).str();
     }
     return result;
 
@@ -409,7 +409,7 @@ std::string Params::getRetargetingAccountsIds() const
         }
         else
         {
-            c = (boost::format(" ca.cost=%d ") % 0 ).str();
+            c = (boost::format(" ca.cost=%d ") % cost_ ).str();
         }
         if (gender_ > 0)
         {

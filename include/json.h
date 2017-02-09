@@ -624,8 +624,15 @@ void get_arithmetic_value(const BasicJsonType& j, ArithmeticType& val)
         }
         default:
         {
-            JSON_THROW(
-                std::domain_error("type must be number, but is " + j.type_name()));
+            if (j.is_null())
+            {
+                val = 0;
+            }
+            else
+            {
+                JSON_THROW(
+                    std::domain_error("type must be number, but is " + j.type_name()));
+            }
         }
     }
 }
@@ -642,12 +649,26 @@ void from_json(const BasicJsonType& j, typename BasicJsonType::boolean_t& b)
 
 template<typename BasicJsonType>
 void from_json(const BasicJsonType& j, typename BasicJsonType::string_t& s)
-{
+{   
     if (not j.is_string())
     {
-        JSON_THROW(std::domain_error("type must be string, but is " + j.type_name()));
+        if (j.is_null())
+        {
+            s = std::string();
+        }
+        else if (j.is_boolean())
+        {
+            s = *j.template get_ptr<const typename BasicJsonType::boolean_t*>()? "true" : "false"; 
+        }
+        else
+        {
+            JSON_THROW(std::domain_error("type must be string, but is " + j.type_name()));
+        }
     }
-    s = *j.template get_ptr<const typename BasicJsonType::string_t*>();
+    else
+    {
+        s = *j.template get_ptr<const typename BasicJsonType::string_t*>();
+    }
 }
 
 template<typename BasicJsonType>

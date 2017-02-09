@@ -89,6 +89,7 @@ void Core::resultHtml()
     j["retargetingOffer"] = nlohmann::json(c_map);
     j["params"] = params->toJson();
     retHtml = j.dump();
+    c_map.clear();
 }
 //-------------------------------------------------------------------------------------------------------------------
 void Core::log()

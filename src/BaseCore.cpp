@@ -167,7 +167,7 @@ void BaseCore::LoadAllEntities()
     pdb->InformerUpdate(filter);
 
     //Загрузили все кампании
-    filter = document{};
+    filter.clear();
     filter.append(kvp("status", "working"));
     pdb->CampaignLoad(filter);
 

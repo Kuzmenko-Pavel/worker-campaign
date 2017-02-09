@@ -17,7 +17,7 @@ public:
     bool InformerUpdate(document &query);
     void InformerRemove(const std::string &id);
 
-    void CampaignLoad(document &query);
+    void CampaignLoad(const document &query);
     void CampaignStartStop(const std::string &aCampaignId, int StartStop);
     void CampaignRemove(const std::string &aCampaignId);
     //std::string CampaignGetName(long long campaign_id);

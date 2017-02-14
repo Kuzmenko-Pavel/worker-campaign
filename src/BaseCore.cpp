@@ -1,11 +1,9 @@
-#include "DB.h"
-
 #include <boost/regex.hpp>
-
+#include <bsoncxx/builder/basic/document.hpp>
+#include <bsoncxx/builder/basic/kvp.hpp>
+#include <bsoncxx/types.hpp>
 #include <sstream>
-
-#include <mongo/util/net/hostandport.h>
-
+#include <AMQPcpp.h>
 #include "../config.h"
 
 #include "Log.h"
@@ -17,6 +15,9 @@
 #include "CpuStat.h"
 
 #define MAXCOUNT 1000
+
+using bsoncxx::builder::basic::document;
+using bsoncxx::builder::basic::kvp;
 
 BaseCore::BaseCore()
 {
@@ -40,12 +41,7 @@ std::string BaseCore::toString(AMQPMessage *m)
     unsigned len;
     char *pMes;
 
-#ifdef AMQPCPP_OLD
-    pMes = m->getMessage();
-    len = strlen(pMes);
-#else
     pMes = m->getMessage(&len);
-#endif // AMQPCPP_OLD
 
     return std::string(pMes,len);
 }
@@ -67,15 +63,12 @@ bool BaseCore::ProcessMQ()
             while(m->getMessageCount() > -1 && stopCount--)
             {
                 mq_log_.push_back(m->getRoutingKey() + ":" +toString(m) + "</br>");
-                if(cfg->logMQ)
-                {
-                    std::clog<<"mq: cmd:"<<m->getRoutingKey()<<toString(m)<<std::endl;
-                }
-
                 if(m->getRoutingKey() == "campaign.update")
                 {
-                    std::string CampaignId = toString(m);
-                    pdb->CampaignLoad(CampaignId);
+                    auto filter = document{};
+                    filter.append(kvp("guid", toString(m)));
+                    filter.append(kvp("status", "working"));
+                    pdb->CampaignLoad(filter);
                 }
                 else if(m->getRoutingKey() == "campaign.delete")
                 {
@@ -83,13 +76,14 @@ bool BaseCore::ProcessMQ()
                 }
                 else if(m->getRoutingKey() == "campaign.start")
                 {
-                    std::string CampaignId = toString(m);
-                    pdb->CampaignLoad(CampaignId);
+                    auto filter = document{};
+                    filter.append(kvp("guid", toString(m)));
+                    filter.append(kvp("status", "working"));
+                    pdb->CampaignLoad(filter);
                 }
                 else if(m->getRoutingKey() == "campaign.stop")
                 {
-                    std::string CampaignId = toString(m);
-                    pdb->CampaignRemove(CampaignId);
+                    pdb->CampaignRemove(toString(m));
                 }
 
                 mq_campaign_->Get(AMQP_NOACK);
@@ -104,15 +98,11 @@ bool BaseCore::ProcessMQ()
             while(m->getMessageCount() > -1 && stopCount--)
             {
                 mq_log_.push_back(m->getRoutingKey() + ":" +toString(m) + "</br>");
-
-                if(cfg->logMQ)
-                {
-                    std::clog<<"mq: cmd:"<<m->getRoutingKey()<<toString(m)<<std::endl;
-                }
-
                 if(m->getRoutingKey() == "informer.update")
                 {
-                    pdb->InformerUpdate(QUERY("guid" << toString(m)));
+                    auto filter = document{};
+                    filter.append(kvp("guid", toString(m)));
+                    pdb->InformerUpdate(filter);
                 }
                 else if(m->getRoutingKey() == "informer.delete")
                 {
@@ -130,17 +120,11 @@ bool BaseCore::ProcessMQ()
             while(m->getMessageCount() > -1 && stopCount--)
             {
                 mq_log_.push_back(m->getRoutingKey() + ":" +toString(m) + "</br>");
-
-                if(cfg->logMQ)
-                {
-                    std::clog<<"mq: cmd:"<<m->getRoutingKey()<<toString(m)<<std::endl;
-                }
-
                 if(m->getRoutingKey() == "account.update")
                 {
-                    std::string accountName = toString(m);
-                    pdb->AccountLoad(QUERY("login" << accountName));
-                    pdb->InformerUpdate(QUERY("user" << accountName));
+                    auto filter = document{};
+                    filter.append(kvp("login", toString(m)));
+		            pdb->AccountLoad(filter);
                 }
 
                 mq_account_->Get(AMQP_NOACK);
@@ -173,16 +157,19 @@ void BaseCore::LoadAllEntities()
         return;
     }
 
+    auto filter = document{};
     //accounts load
-    pdb->AccountLoad();
+    pdb->AccountLoad(filter);
     //device load
-    pdb->DeviceLoad();
+    pdb->DeviceLoad(filter);
 
     //Загрузили все информеры
-    pdb->InformerLoadAll();
+    pdb->InformerUpdate(filter);
 
     //Загрузили все кампании
-    pdb->CampaignLoad();
+    filter.clear();
+    filter.append(kvp("status", "working"));
+    pdb->CampaignLoad(filter);
 
     //загрузили рейтинг
     cfg->pDb->indexRebuild();
@@ -302,12 +289,11 @@ std::string BaseCore::Status(const std::string &server_name)
 
     out << "<tr><td>Основная база данных:</td> <td>" <<
         cfg->mongo_main_db_<< "/";
-    out << "<br/>slave_ok = " << (cfg->mongo_main_slave_ok_? "true" : "false");
     out << "<br/>replica set=";
-    if (cfg->mongo_main_set_.empty())
+    if (cfg->mongo_main_url_.empty())
         out << "no set";
     else
-        out << cfg->mongo_main_set_;
+        out << cfg->mongo_main_url_;
     out << "</td></tr>";
 
 

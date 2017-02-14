@@ -9,8 +9,8 @@
 
 #include "GeoRerions.h"
 #include "Log.h"
-#include "KompexSQLiteStatement.h"
-#include "KompexSQLiteException.h"
+#include <KompexSQLiteStatement.h>
+#include <KompexSQLiteException.h>
 
 GeoRerions::GeoRerions()
 {

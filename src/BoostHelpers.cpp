@@ -1,6 +1,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
-
+#include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
@@ -8,6 +8,7 @@
 
 #include "BoostHelpers.h"
 #include "Log.h"
+
 
 boost::regex timeRegex("(\\d+):(\\d+):(\\d+)");
 

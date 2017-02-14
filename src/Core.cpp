@@ -14,7 +14,6 @@
 
 #include "Config.h"
 #include "Core.h"
-#include "DB.h"
 #include "base64.h"
 #include "json.h"
 
@@ -90,6 +89,7 @@ void Core::resultHtml()
     j["retargetingOffer"] = nlohmann::json(c_map);
     j["params"] = params->toJson();
     retHtml = j.dump();
+    c_map.clear();
 }
 //-------------------------------------------------------------------------------------------------------------------
 void Core::log()

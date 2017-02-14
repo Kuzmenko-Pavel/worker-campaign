@@ -82,8 +82,8 @@ private:
     std::string context_;
     std::string device_;
     std::string search_;
-    int cost_;
-    int gender_;
+    int cost_ = 0;
+    int gender_ = 0;
     std::map<std::string,int> cost_accounts_;
     std::map<std::string,int> gender_accounts_;
     std::vector<std::string> retargetingAccountIds;

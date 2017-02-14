@@ -3,8 +3,8 @@
 #include "Campaign.h"
 #include "Log.h"
 #include "Config.h"
-#include "KompexSQLiteStatement.h"
-#include "KompexSQLiteException.h"
+#include <KompexSQLiteStatement.h>
+#include <KompexSQLiteException.h>
 #include "json.h"
 
 Campaign::Campaign()

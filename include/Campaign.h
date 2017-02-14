@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "KompexSQLiteDatabase.h"
+#include <KompexSQLiteDatabase.h>
 #include "json.h"
 
 //typedef long long			sphinx_int64_t;

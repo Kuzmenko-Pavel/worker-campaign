@@ -1,7 +1,7 @@
 #ifndef GEORERIONS_H
 #define GEORERIONS_H
 
-#include "KompexSQLiteDatabase.h"
+#include <KompexSQLiteDatabase.h>
 
 class GeoRerions
 {

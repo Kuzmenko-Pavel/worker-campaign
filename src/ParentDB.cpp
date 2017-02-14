@@ -15,7 +15,7 @@
 #include <bsoncxx/types/value.hpp>
 #include <bsoncxx/document/value.hpp>
 #include <bsoncxx/document/view.hpp>
-#include "KompexSQLiteStatement.h"
+#include <KompexSQLiteStatement.h>
 #include "json.h"
 #include "Config.h"
 #include "Campaign.h"

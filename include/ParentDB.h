@@ -20,7 +20,6 @@ public:
     void CampaignLoad(const document &query);
     void CampaignStartStop(const std::string &aCampaignId, int StartStop);
     void CampaignRemove(const std::string &aCampaignId);
-    //std::string CampaignGetName(long long campaign_id);
 
     bool AccountLoad(document &query);
     bool DeviceLoad(document &query);
